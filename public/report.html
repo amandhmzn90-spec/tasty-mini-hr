@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report — Tasty Yummy Bakery</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0F0A0D;
+  --surface:   #1A1118;
+  --card:      #221820;
+  --card2:     #2A1E26;
+  --border:    rgba(255,255,255,0.07);
+  --pink:      #E91E8C;
+  --pink-dim:  rgba(233,30,140,0.12);
+  --text:      #F5EEF2;
+  --soft:      #9D8A94;
+  --hint:      #5C4D55;
+  --green:     #1DB974;
+  --green-dim: rgba(29,185,116,0.12);
+  --amber:     #F59E0B;
+  --amber-dim: rgba(245,158,11,0.12);
+  --red:       #EF4444;
+  --red-dim:   rgba(239,68,68,0.12);
+  --r-md:14px; --r-lg:20px; --r-xl:28px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+/* ---- PASSWORD GATE ---- */
+.pw-gate { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+.pw-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 2.5rem; text-align: center; max-width: 340px; width: 100%; }
+.pw-logo { font-size: 12px; font-weight: 600; color: var(--pink); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+.pw-title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+.pw-sub { font-size: 13px; color: var(--soft); margin-bottom: 1.75rem; }
+.pw-input {
+  width: 100%; padding: 13px 16px; background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--r-md); font-size: 16px; font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--text); outline: none; text-align: center; letter-spacing: 0.1em;
+  color-scheme: dark; transition: border-color 0.2s; margin-bottom: 12px;
+}
+.pw-input:focus { border-color: var(--pink); }
+.pw-input.error { border-color: var(--red); animation: shake 0.3s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+.pw-btn {
+  width: 100%; padding: 14px; background: var(--pink); color: white; border: none;
+  border-radius: var(--r-lg); font-size: 15px; font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; transition: all 0.15s;
+}
+.pw-btn:hover { background: #c91578; }
+.pw-err { font-size: 13px; color: var(--red); margin-top: 10px; display: none; }
+.pw-err.show { display: block; }
+
+/* ---- DASHBOARD ---- */
+.dashboard { display: none; }
+.dashboard.show { display: block; }
+.wrap { max-width: 520px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+
+.top-bar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2rem; }
+.top-bar-left .bakery { font-size: 12px; font-weight: 600; color: var(--pink); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+.top-bar-left .title { font-size: 24px; font-weight: 800; color: var(--text); }
+.logout-btn { padding: 7px 14px; background: transparent; border: 1px solid var(--border); border-radius: var(--r-md); font-size: 12px; color: var(--soft); font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; transition: all 0.15s; }
+.logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+.upah-bar { display: flex; align-items: center; justify-content: space-between; background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 12px 16px; margin-bottom: 1.5rem; }
+.upah-label { font-size: 12px; color: var(--soft); }
+.upah-val { font-size: 16px; font-weight: 700; color: var(--amber); }
+.upah-edit-btn { padding: 6px 12px; background: var(--amber-dim); border: 1px solid var(--amber); border-radius: var(--r-md); font-size: 12px; font-weight: 600; color: var(--amber); font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; transition: all 0.15s; }
+.upah-edit-btn:hover { background: var(--amber); color: #1a1a1a; }
+
+.bulan-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; }
+.bulan-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--soft); font-size: 18px; transition: all 0.15s; }
+.bulan-btn:hover { border-color: var(--pink); color: var(--pink); }
+.bulan-label { flex:1; text-align:center; font-size:15px; font-weight:700; color:var(--text); }
+
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.5rem; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 14px 16px; }
+.stat-label { font-size: 10px; color: var(--soft); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.stat-val { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
+.stat-val.pink { color: var(--pink); }
+.stat-val.green { color: var(--green); }
+.stat-val.red { color: var(--red); }
+.stat-sub { font-size: 11px; color: var(--hint); margin-top: 4px; }
+
+.sec-label { font-size: 11px; font-weight: 600; color: var(--soft); letter-spacing: 0.1em; text-transform: uppercase; margin: 0 0 10px; }
+
+.staff-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); margin-bottom: 8px; overflow: hidden; }
+.staff-hdr { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; transition: background 0.15s; }
+.staff-hdr:hover { background: var(--card2); }
+.staff-hdr.open { background: var(--card2); border-bottom: 1px solid var(--border); }
+.s-ava { width: 40px; height: 40px; border-radius: 50%; background: var(--hint); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--text); flex-shrink: 0; }
+.s-info { flex:1; }
+.s-name { font-size: 15px; font-weight: 600; color: var(--text); }
+.s-meta { font-size: 12px; color: var(--soft); margin-top: 2px; }
+.s-gaji { text-align: right; }
+.s-gaji-val { font-size: 15px; font-weight: 700; color: var(--green); }
+.s-gaji-bonus { font-size: 11px; color: var(--amber); margin-top: 2px; }
+.s-arrow { font-size: 10px; color: var(--hint); transition: transform 0.2s; }
+.staff-hdr.open .s-arrow { transform: rotate(180deg); }
+
+.staff-detail { display: none; padding: 14px 16px; }
+.staff-detail.open { display: block; }
+.d-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.d-row:first-child { border-top: none; padding-top: 0; }
+.d-key { color: var(--soft); }
+.d-val { font-weight: 500; color: var(--text); }
+.d-val.green { color: var(--green); }
+.d-val.amber { color: var(--amber); }
+.d-val.red { color: var(--red); }
+.d-total { display: flex; justify-content: space-between; padding: 10px 0 0; margin-top: 4px; border-top: 1px solid var(--pink); font-weight: 700; }
+.d-total .d-val { font-size: 17px; color: var(--green); }
+
+.bonus-section { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.bonus-label { font-size: 11px; color: var(--soft); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.bonus-row { display: flex; gap: 8px; }
+.bonus-input { flex:1; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); outline: none; color-scheme: dark; transition: border-color 0.15s; }
+.bonus-input:focus { border-color: var(--amber); }
+.bonus-input::placeholder { color: var(--hint); }
+.bonus-save { padding: 10px 16px; background: var(--amber-dim); border: 1px solid var(--amber); border-radius: var(--r-md); font-size: 13px; font-weight: 700; color: var(--amber); cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; transition: all 0.15s; }
+.bonus-save:hover { background: var(--amber); color: #1a1a1a; }
+
+/* Override section */
+.override-section { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.override-label { font-size: 11px; color: var(--soft); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.override-row { display: flex; gap: 8px; align-items: center; }
+.override-input { flex:1; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); outline: none; color-scheme: dark; transition: border-color 0.15s; }
+.override-input:focus { border-color: rgba(239,68,68,0.5); }
+.override-save { padding: 10px 14px; background: var(--red-dim); border: 1px solid var(--red); border-radius: var(--r-md); font-size: 12px; font-weight: 700; color: var(--red); cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; transition: all 0.15s; }
+.override-save:hover { background: var(--red); color: white; }
+.override-hint { font-size: 11px; color: var(--hint); margin-top: 6px; }
+
+/* Log */
+.log-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+.log-header { display: grid; grid-template-columns: 80px 100px 70px 80px 55px; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--card2); }
+.log-header span { font-size: 10px; font-weight: 600; color: var(--hint); text-transform: uppercase; letter-spacing: 0.06em; }
+.log-row { display: grid; grid-template-columns: 80px 100px 70px 80px 55px; gap: 6px; padding: 9px 14px; border-bottom: 1px solid rgba(255,255,255,0.03); align-items: center; }
+.log-row:last-child { border-bottom: none; }
+.log-cell { font-size: 12px; color: var(--soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.log-cell.primary { color: var(--text); font-weight: 500; }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 600; }
+.pill-masuk { background: var(--green-dim); color: var(--green); }
+.pill-lembur { background: var(--amber-dim); color: var(--amber); }
+.pill-izin { background: var(--pink-dim); color: var(--pink); }
+.pill-sakit { background: var(--red-dim); color: var(--red); }
+
+.empty { text-align: center; padding: 3rem 1rem; color: var(--hint); font-size: 14px; }
+.loading { text-align: center; padding: 2rem; color: var(--hint); font-size: 14px; }
+
+/* Upah modal */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
+.modal-bg.show { display: flex; }
+.modal { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 1.75rem; width: 100%; max-width: 320px; }
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.modal-sub { font-size: 13px; color: var(--soft); margin-bottom: 14px; }
+.modal-input { width: 100%; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); font-size: 16px; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); outline: none; color-scheme: dark; margin-bottom: 14px; }
+.modal-input:focus { border-color: var(--amber); }
+.modal-btns { display: flex; gap: 8px; }
+.modal-cancel { flex:1; padding: 12px; background: transparent; border: 1px solid var(--border); border-radius: var(--r-md); color: var(--soft); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; cursor: pointer; }
+.modal-ok { flex:1; padding: 12px; background: var(--amber); border: none; border-radius: var(--r-md); color: #1a1a1a; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
+
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border-radius: var(--r-md); font-size: 14px; font-weight: 500; font-family: 'Plus Jakarta Sans', sans-serif; display: none; z-index: 999; text-align: center; min-width: 240px; }
+.toast.show { display: block; }
+.toast.success { background: var(--green); color: white; }
+.toast.error { background: var(--red); color: white; }
+.toast.warn { background: var(--amber); color: #1a1a1a; }
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div class="pw-gate" id="pw-gate">
+  <div class="pw-card">
+    <div class="pw-logo">Tasty Yummy Bakery</div>
+    <div class="pw-title">Dashboard Report</div>
+    <div class="pw-sub">Masukkan password untuk mengakses laporan gaji</div>
+    <input class="pw-input" type="password" id="pw-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="pw-btn" onclick="checkPw()">Masuk</button>
+    <div class="pw-err" id="pw-err">Password salah. Coba lagi.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+  <div class="wrap">
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <div class="bakery">Tasty Yummy Bakery</div>
+        <div class="title">Laporan Gaji</div>
+      </div>
+      <button class="logout-btn" onclick="logout()">Keluar</button>
+    </div>
+
+    <div class="upah-bar">
+      <div>
+        <div class="upah-label">Upah per jam</div>
+        <div class="upah-val" id="upah-display">Belum diset</div>
+      </div>
+      <button class="upah-edit-btn" onclick="openUpahModal()">Ubah</button>
+    </div>
+
+    <div class="bulan-row">
+      <button class="bulan-btn" onclick="changeBulan(-1)">‹</button>
+      <div class="bulan-label" id="bulan-label">--</div>
+      <button class="bulan-btn" onclick="changeBulan(1)">›</button>
+    </div>
+
+    <div class="summary-grid">
+      <div class="stat-card"><div class="stat-label">Total Jam</div><div class="stat-val" id="s-jam">--</div><div class="stat-sub">seluruh staff</div></div>
+      <div class="stat-card"><div class="stat-label">Total Gaji</div><div class="stat-val pink" id="s-gaji">--</div><div class="stat-sub">termasuk bonus</div></div>
+      <div class="stat-card"><div class="stat-label">Hari Masuk</div><div class="stat-val green" id="s-masuk">--</div><div class="stat-sub">total absensi</div></div>
+      <div class="stat-card"><div class="stat-label">Izin / Sakit</div><div class="stat-val red" id="s-izin">--</div><div class="stat-sub">seluruh staff</div></div>
+    </div>
+
+    <div class="sec-label">Rekap per Staff</div>
+    <div id="staff-list"><div class="loading">Memuat data...</div></div>
+
+    <div class="sec-label" style="margin-top:1.5rem;">Log Absensi</div>
+    <div id="log-wrap"><div class="loading">Memuat log...</div></div>
+  </div>
+</div>
+
+<!-- Upah modal -->
+<div class="modal-bg" id="upah-modal">
+  <div class="modal">
+    <div class="modal-title">Upah per Jam</div>
+    <div class="modal-sub">Berlaku untuk semua staff</div>
+    <input class="modal-input" type="number" id="upah-input" placeholder="Contoh: 15000">
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeUpahModal()">Batal</button>
+      <button class="modal-ok" onclick="saveUpah()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjGEABh0bdl9Ia0-64KlPeRDnRsD5NEj9m9P2pGMqdyfGoET8FIFTBnBXS14nmKRTyIA/exec';
+const STAFF = ['Alfian', 'Maol', 'Dita', 'Defi', 'Erika'];
+const PASSWORD_HASH = 'ed07ef97c62493e58499aa1cdcde95b191594c41182d9babe328aefc78df478b'; // sha256 of 'tastyummybakery'
+
+let upahPerJam = parseInt(localStorage.getItem('upah_per_jam') || '0');
+let bonusData = JSON.parse(localStorage.getItem('bonus_data') || '{}');
+let overrideData = JSON.parse(localStorage.getItem('override_data') || '{}');
+const now = new Date();
+let cYear = now.getFullYear(), cMonth = now.getMonth();
+
+function fmt(n) { return 'Rp '+Math.round(n).toLocaleString('id-ID'); }
+function initials(n) { return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+function bulanLabel(y,m) { return new Date(y,m,1).toLocaleDateString('id-ID',{month:'long',year:'numeric'}); }
+function bonusKey(nama) { return `${cYear}-${cMonth}-${nama}`; }
+function overrideKey(nama) { return `ov-${cYear}-${cMonth}-${nama}`; }
+function getBonus(nama) { return bonusData[bonusKey(nama)] || 0; }
+function getOverride(nama) { return overrideData[overrideKey(nama)] || null; }
+
+// ---- Password check ----
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkPw() {
+  const val = document.getElementById('pw-input').value;
+  sha256("tastyummybakery").then(console.log)
+  const hash = await sha256(val);
+  if (hash === PASSWORD_HASH) {
+    sessionStorage.setItem('report_auth', '1');
+    document.getElementById('pw-gate').style.display = 'none';
+    document.getElementById('dashboard').classList.add('show');
+    initDashboard();
+  } else {
+    const inp = document.getElementById('pw-input');
+    inp.classList.add('error');
+    document.getElementById('pw-err').classList.add('show');
+    setTimeout(() => inp.classList.remove('error'), 400);
+    inp.value = '';
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('report_auth');
+  document.getElementById('dashboard').classList.remove('show');
+  document.getElementById('pw-gate').style.display = 'flex';
+  document.getElementById('pw-input').value = '';
+  document.getElementById('pw-err').classList.remove('show');
+}
+
+// Auto-login if already authenticated this session
+if (sessionStorage.getItem('report_auth') === '1') {
+  document.getElementById('pw-gate').style.display = 'none';
+  document.getElementById('dashboard').classList.add('show');
+}
+
+function initDashboard() {
+  document.getElementById('bulan-label').textContent = bulanLabel(cYear, cMonth);
+  updateUpahDisplay();
+  loadData();
+}
+
+function changeBulan(d) {
+  cMonth += d;
+  if (cMonth > 11) { cMonth = 0; cYear++; }
+  if (cMonth < 0) { cMonth = 11; cYear--; }
+  document.getElementById('bulan-label').textContent = bulanLabel(cYear, cMonth);
+  loadData();
+}
+
+function updateUpahDisplay() {
+  document.getElementById('upah-display').textContent = upahPerJam ? fmt(upahPerJam) : 'Belum diset';
+  document.getElementById('upah-input').value = upahPerJam || '';
+}
+function openUpahModal() { document.getElementById('upah-modal').classList.add('show'); document.getElementById('upah-input').focus(); }
+function closeUpahModal() { document.getElementById('upah-modal').classList.remove('show'); }
+function saveUpah() {
+  const val = parseInt(document.getElementById('upah-input').value);
+  if (!val||val<1) { showToast('Masukkan nominal yang valid!','warn'); return; }
+  upahPerJam = val; localStorage.setItem('upah_per_jam', val);
+  updateUpahDisplay(); closeUpahModal(); loadData();
+  showToast('Upah per jam diupdate!','success');
+}
+
+async function loadData() {
+  document.getElementById('staff-list').innerHTML = '<div class="loading">Memuat data...</div>';
+  document.getElementById('log-wrap').innerHTML = '<div class="loading">Memuat log...</div>';
+  let records = [];
+  try {
+    const url = SCRIPT_URL+'?type=getAbsen&bulan='+encodeURIComponent(bulanLabel(cYear,cMonth));
+    const res = await fetch(url);
+    const json = await res.json();
+    records = json.data || [];
+  } catch(e) {
+    records = generateDemo();
+  }
+  renderDashboard(records);
+}
+
+function generateDemo() {
+  const days=[3,5,8,10,12,15,17,19,22,24,26];
+  const records=[];
+  const m=String(cMonth+1).padStart(2,'0');
+  STAFF.forEach(s=>{
+    days.forEach(d=>{
+      if(Math.random()>0.12){
+        const mh=8+Math.floor(Math.random()*2), kh=16+Math.floor(Math.random()*3);
+        const jam=((kh-mh)+(Math.random()>0.7?0.5:0)).toFixed(2);
+        records.push({nama:s,tanggal:String(d).padStart(2,'0')+'/'+m+'/'+cYear,bulan:bulanLabel(cYear,cMonth),status:Math.random()>0.85?'Lembur':'Masuk',jamMasuk:`${mh}:00`,jamKeluar:`${kh}:00`,totalJam:jam,catatan:''});
+      } else {
+        records.push({nama:s,tanggal:String(d).padStart(2,'0')+'/'+m+'/'+cYear,bulan:bulanLabel(cYear,cMonth),status:Math.random()>0.5?'Izin':'Sakit',jamMasuk:'-',jamKeluar:'-',totalJam:'0',catatan:''});
+      }
+    });
+  });
+  return records;
+}
+
+function renderDashboard(records) {
+  const map={};
+  STAFF.forEach(s=>{ map[s]={totalJam:0,masuk:0,izin:0,sakit:0,lembur:0,logs:[]}; });
+
+  records.forEach(r=>{
+    if(!map[r.nama])return;
+    const ov = getOverride(r.nama);
+    const jam = ov ? parseFloat(ov) : (parseFloat(r.totalJam)||0);
+    map[r.nama].totalJam += jam;
+    map[r.nama].logs.push(r);
+    if(r.status==='Masuk') map[r.nama].masuk++;
+    else if(r.status==='Lembur'){ map[r.nama].masuk++; map[r.nama].lembur++; }
+    else if(r.status==='Izin') map[r.nama].izin++;
+    else if(r.status==='Sakit') map[r.nama].sakit++;
+  });
+
+  let totJam=0, totGaji=0, totMasuk=0, totIzin=0;
+  STAFF.forEach(s=>{
+    const d=map[s]; const b=getBonus(s);
+    totJam+=d.totalJam; totGaji+=d.totalJam*upahPerJam+b;
+    totMasuk+=d.masuk; totIzin+=d.izin+d.sakit;
+  });
+
+  document.getElementById('s-jam').textContent=totJam.toFixed(1)+' jam';
+  document.getElementById('s-gaji').textContent=upahPerJam?fmt(totGaji):'—';
+  document.getElementById('s-masuk').textContent=totMasuk+' hari';
+  document.getElementById('s-izin').textContent=totIzin+' hari';
+
+  document.getElementById('staff-list').innerHTML=STAFF.map(s=>{
+    const d=map[s]; const bonus=getBonus(s); const ov=getOverride(s);
+    const gaji=d.totalJam*upahPerJam; const total=gaji+bonus;
+    return `<div class="staff-card">
+      <div class="staff-hdr" onclick="toggleStaff('${s}')">
+        <div class="s-ava">${initials(s)}</div>
+        <div class="s-info">
+          <div class="s-name">${s}</div>
+          <div class="s-meta">${d.totalJam.toFixed(1)} jam · ${d.masuk} hari masuk${ov?` · <span style="color:var(--amber)">override aktif</span>`:''}</div>
+        </div>
+        <div class="s-gaji">
+          <div class="s-gaji-val">${upahPerJam?fmt(total):'—'}</div>
+          ${bonus?`<div class="s-gaji-bonus">+bonus ${fmt(bonus)}</div>`:''}
+        </div>
+        <div class="s-arrow">▼</div>
+      </div>
+      <div class="staff-detail" id="det-${s}">
+        <div class="d-row"><span class="d-key">Total jam kerja</span><span class="d-val">${d.totalJam.toFixed(2)} jam</span></div>
+        <div class="d-row"><span class="d-key">Hari masuk</span><span class="d-val green">${d.masuk} hari</span></div>
+        <div class="d-row"><span class="d-key">Lembur</span><span class="d-val amber">${d.lembur} hari</span></div>
+        <div class="d-row"><span class="d-key">Izin</span><span class="d-val red">${d.izin} hari</span></div>
+        <div class="d-row"><span class="d-key">Sakit</span><span class="d-val red">${d.sakit} hari</span></div>
+        <div class="d-row"><span class="d-key">Gaji pokok</span><span class="d-val">${upahPerJam?fmt(gaji):'—'}</span></div>
+        <div class="d-row"><span class="d-key">Bonus</span><span class="d-val amber">${bonus?fmt(bonus):'—'}</span></div>
+        <div class="d-total"><span class="d-key" style="font-weight:700;">Total gaji</span><span class="d-val">${upahPerJam?fmt(total):'—'}</span></div>
+
+        <div class="bonus-section">
+          <div class="bonus-label">Tambah / Ubah Bonus</div>
+          <div class="bonus-row">
+            <input class="bonus-input" type="number" id="bi-${s}" value="${bonus||''}" placeholder="Nominal bonus (Rp)">
+            <button class="bonus-save" onclick="applyBonus('${s}')">Simpan</button>
+          </div>
+        </div>
+
+        <div class="override-section">
+          <div class="override-label">Override Total Jam (admin)</div>
+          <div class="override-row">
+            <input class="override-input" type="number" id="oi-${s}" value="${ov||''}" placeholder="Total jam bulan ini">
+            <button class="override-save" onclick="applyOverride('${s}')">Override</button>
+          </div>
+          <div class="override-hint">Gunakan jika staff lupa check-out. Kosongkan untuk reset ke data asli.</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Log
+  const sorted=records.sort((a,b)=>{
+    const pa=a.tanggal.split('/'),pb=b.tanggal.split('/');
+    return new Date(pb[2],pb[1]-1,pb[0])-new Date(pa[2],pa[1]-1,pa[0]);
+  }).slice(0,60);
+
+  if(!sorted.length){
+    document.getElementById('log-wrap').innerHTML='<div class="empty">Belum ada data absen bulan ini</div>';
+    return;
+  }
+
+  document.getElementById('log-wrap').innerHTML=`<div class="log-wrap">
+    <div class="log-header"><span>Tanggal</span><span>Nama</span><span>Status</span><span>Jam</span><span>Total</span></div>
+    ${sorted.map(r=>`
+      <div class="log-row">
+        <span class="log-cell">${r.tanggal}</span>
+        <span class="log-cell primary">${r.nama}</span>
+        <span class="log-cell"><span class="pill pill-${r.status.toLowerCase()}">${r.status}</span></span>
+        <span class="log-cell">${r.jamMasuk!=='-'?r.jamMasuk+'–'+r.jamKeluar:'—'}</span>
+        <span class="log-cell">${parseFloat(r.totalJam)>0?parseFloat(r.totalJam).toFixed(1)+'j':'—'}</span>
+      </div>`).join('')}
+  </div>`;
+}
+
+function toggleStaff(nama){
+  const det=document.getElementById('det-'+nama);
+  const hdr=det.previousElementSibling;
+  det.classList.toggle('open'); hdr.classList.toggle('open');
+}
+
+function applyBonus(nama){
+  const val=parseInt(document.getElementById('bi-'+nama).value)||0;
+  bonusData[bonusKey(nama)]=val;
+  localStorage.setItem('bonus_data',JSON.stringify(bonusData));
+  showToast('Bonus '+nama+' disimpan!','success');
+  loadData();
+}
+
+function applyOverride(nama){
+  const val=document.getElementById('oi-'+nama).value.trim();
+  if(val===''){
+    delete overrideData[overrideKey(nama)];
+  } else {
+    overrideData[overrideKey(nama)]=parseFloat(val)||0;
+  }
+  localStorage.setItem('override_data',JSON.stringify(overrideData));
+  showToast(val===''?`Override ${nama} direset`:`Override ${nama} disimpan`,'success');
+  loadData();
+}
+
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+type;
+  setTimeout(()=>{t.className='toast';},3000);
+}
+
+// Init if already authed
+if(sessionStorage.getItem('report_auth')==='1') initDashboard();
+else { document.getElementById('bulan-label').textContent=bulanLabel(cYear,cMonth); }
+</script>
+</body>
+</html>
