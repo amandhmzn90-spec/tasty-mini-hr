@@ -19,8 +19,8 @@ app.use(express.static(join(__dirname, '../public')));
 
 // ── Supabase client ─────────────────────────────────────────────
 const supabase = createClient(
-  process.env.supabase_url,
-  process.env.supabase_service_role_key // use service role key for server-side access
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY // use service role key for server-side access
 );
 
 // ── Helpers ─────────────────────────────────────────────────────
