@@ -1,0 +1,17 @@
+{
+  "name": "attendance-app-v2",
+  "version": "2.0.0",
+  "description": "Attendance & Payroll App — Supabase backend",
+  "type": "module",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js",
+    "dev": "node --watch api/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "uuid": "^10.0.0"
+  }
+}

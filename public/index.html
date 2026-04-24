@@ -2,438 +2,249 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Absen — Tasty Yummy Bakery</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Absen</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:        #0F0A0D;
-  --surface:   #1A1118;
-  --card:      #221820;
-  --card2:     #2A1E26;
-  --border:    rgba(255,255,255,0.07);
-  --pink:      #E91E8C;
-  --pink-dim:  rgba(233,30,140,0.13);
-  --text:      #F5EEF2;
-  --soft:      #9D8A94;
-  --hint:      #5C4D55;
-  --green:     #1DB974;
-  --green-dim: rgba(29,185,116,0.13);
-  --amber:     #F59E0B;
-  --amber-dim: rgba(245,158,11,0.13);
-  --red:       #EF4444;
-  --red-dim:   rgba(239,68,68,0.13);
-  --r-md: 14px; --r-lg: 20px; --r-xl: 28px;
+:root{
+  --bg:#08060d;--c1:#100e18;--c2:#181422;--c3:#22202e;--c4:#2c293c;
+  --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.12);
+  --vi:#7c3aed;--vi1:rgba(124,58,237,.16);--vi2:rgba(124,58,237,.08);
+  --tx:#ece8f4;--t2:#9080a8;--t3:#4e4468;
+  --gr:#16a34a;--gr1:rgba(22,163,74,.16);
+  --am:#d97706;--am1:rgba(217,119,6,.16);
+  --rd:#dc2626;--rd1:rgba(220,38,38,.16);
+  --bl:#2563eb;--bl1:rgba(37,99,235,.16);
+  --r1:10px;--r2:18px;--r3:26px;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
-.wrap { max-width: 400px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;-webkit-font-smoothing:antialiased}
+.wrap{max-width:400px;margin:0 auto;padding:1.5rem 1.25rem 5rem}
 
-/* Geo gate */
-.geo-gate {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  padding: 2rem;
-}
-.geo-card {
-  background: var(--card); border: 1px solid var(--border); border-radius: var(--r-xl);
-  padding: 2rem; text-align: center; max-width: 340px; width: 100%;
-}
-.geo-icon { font-size: 48px; margin-bottom: 16px; }
-.geo-title { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
-.geo-sub { font-size: 14px; color: var(--soft); line-height: 1.5; margin-bottom: 1.5rem; }
-.geo-btn {
-  width: 100%; padding: 14px; background: var(--pink); color: white; border: none;
-  border-radius: var(--r-lg); font-size: 15px; font-weight: 700;
-  font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; transition: all 0.15s;
-}
-.geo-btn:hover { background: #c91578; }
-.geo-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.geo-error {
-  background: var(--red-dim); border: 1px solid rgba(239,68,68,0.25);
-  border-radius: var(--r-md); padding: 12px 14px; font-size: 13px; color: #FCA5A5;
-  margin-top: 12px; display: none;
-}
-.geo-error.show { display: block; }
-.geo-distance { font-size: 13px; color: var(--soft); margin-top: 10px; display: none; }
-.geo-distance.show { display: block; }
+#boot{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--t2);font-size:13px}
+.spin{width:24px;height:24px;border:2px solid var(--bd2);border-top-color:var(--vi);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#main{display:none}
 
-/* Main app */
-.main-app { display: none; }
-.main-app.show { display: block; }
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.brand{font-size:11px;font-weight:700;color:var(--vi);letter-spacing:.12em;text-transform:uppercase}
+.tc{background:var(--c2);border:1px solid var(--bd);border-radius:99px;padding:5px 13px;font-size:13px;font-weight:600}
 
-.bakery-name { font-size: 12px; font-weight: 600; color: var(--pink); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
-.page-title { font-size: 26px; font-weight: 800; color: var(--text); }
-.page-sub { font-size: 14px; color: var(--soft); margin-top: 4px; margin-bottom: 1.75rem; }
+.clk-box{background:var(--c2);border:1px solid var(--bd);border-radius:var(--r3);padding:1.5rem;text-align:center;margin-bottom:1.25rem}
+.clk-big{font-size:52px;font-weight:800;letter-spacing:-2px;line-height:1}
+.clk-date{font-size:12px;color:var(--t2);margin-top:5px}
 
-.geo-badge {
-  display: inline-flex; align-items: center; gap: 6px; background: var(--green-dim);
-  border: 1px solid rgba(29,185,116,0.2); border-radius: 99px;
-  padding: 5px 12px; font-size: 12px; color: var(--green); font-weight: 500; margin-bottom: 1.25rem;
-}
-.geo-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+.sec{font-size:10px;font-weight:700;color:var(--t2);letter-spacing:.1em;text-transform:uppercase;margin:0 0 8px}
+.eg{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:1.25rem}
+.eb{padding:12px 8px;background:var(--c2);border:1px solid var(--bd);border-radius:var(--r1);cursor:pointer;text-align:center;font-family:inherit;transition:all .15s}
+.eb:hover{border-color:var(--vi)}.eb.sel{background:var(--vi1);border-color:var(--vi)}
+.ea{width:36px;height:36px;border-radius:50%;background:var(--t3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin:0 auto 6px;transition:background .15s}
+.eb.sel .ea{background:var(--vi)}
+.en{font-size:12px;font-weight:600}.er{font-size:10px;color:var(--t2);margin-top:1px}
+.ed{width:6px;height:6px;border-radius:50%;background:var(--t3);margin:5px auto 0;transition:background .15s}
+.ed.on{background:var(--gr)}
 
-.clock-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 1.5rem; text-align: center; margin-bottom: 1.5rem; }
-.clock-time { font-size: 52px; font-weight: 800; letter-spacing: -3px; line-height: 1; color: var(--text); }
-.clock-date { font-size: 13px; color: var(--soft); margin-top: 6px; }
+.sc{display:none;margin-bottom:1.25rem}.sc.vis{display:block}
+.card-ci{background:var(--gr1);border:1px solid rgba(22,163,74,.28);border-radius:var(--r3);padding:1.5rem;text-align:center}
+.card-co{background:var(--vi1);border:1px solid rgba(124,58,237,.28);border-radius:var(--r3);padding:1.5rem;text-align:center}
+.card-lv{background:var(--bl1);border:1px solid rgba(37,99,235,.28);border-radius:var(--r3);padding:1.5rem;text-align:center}
+.card-dn{background:var(--c2);border:1px solid var(--bd);border-radius:var(--r3);padding:2rem;text-align:center;display:none;margin-bottom:1.25rem}
+.card-dn.vis{display:block}
+.si{font-size:30px;margin-bottom:7px}.st{font-size:17px;font-weight:700;margin-bottom:3px}
+.ss{font-size:12px;color:var(--t2);margin-bottom:1.1rem}
+.ci-t{font-size:38px;font-weight:800;color:var(--gr);letter-spacing:-1px;margin-bottom:3px}
+.dur{font-size:13px;color:var(--t2);margin-bottom:1.1rem}
+.dn-h{font-size:42px;font-weight:800;color:var(--gr);margin:.5rem 0 .2rem;letter-spacing:-2px}
+.dn-ot{font-size:12px;color:var(--am);margin-top:3px}
 
-.sec-label { font-size: 11px; font-weight: 600; color: var(--soft); letter-spacing: 0.1em; text-transform: uppercase; margin: 0 0 10px; }
+.ab{width:100%;padding:15px;border:none;border-radius:var(--r2);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s}
+.ab:active{transform:scale(.98)}.ab:disabled{opacity:.45;cursor:not-allowed}
+.ab-ci{background:var(--gr);color:#fff}.ab-co{background:var(--vi);color:#fff}
+.loc{font-size:11px;color:var(--t3);text-align:center;margin-top:6px;min-height:16px;transition:color .2s}
+.loc.ok{color:var(--gr)}.loc.er{color:var(--rd)}.loc.wn{color:var(--am)}
 
-.staff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.5rem; }
-.staff-btn { padding: 13px 10px; background: var(--card); border: 1px solid var(--border); border-radius: var(--r-md); cursor: pointer; text-align: center; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.15s; }
-.staff-btn:hover { border-color: var(--pink); }
-.staff-btn.active { background: var(--pink-dim); border-color: var(--pink); }
-.s-ava { width: 38px; height: 38px; border-radius: 50%; background: var(--hint); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; margin: 0 auto 7px; color: var(--text); transition: background 0.15s; }
-.staff-btn.active .s-ava { background: var(--pink); }
-.s-name { font-size: 13px; font-weight: 500; color: var(--text); }
-.s-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--hint); margin: 5px auto 0; transition: background 0.15s; }
-.s-dot.in { background: var(--green); }
+.notice{background:var(--c3);border:1px solid var(--bd2);border-radius:var(--r1);padding:9px 13px;font-size:12px;color:var(--t2);text-align:center;display:none;margin-bottom:1rem}
+.notice.vis{display:block}
+.dv{display:flex;align-items:center;gap:8px;margin:1.1rem 0}
+.dv::before,.dv::after{content:'';flex:1;height:1px;background:var(--bd)}
+.dv span{font-size:11px;color:var(--t3)}
+.lvbox{background:var(--c2);border:1px solid var(--bd);border-radius:var(--r3);padding:1.1rem}
+.lv-btns{display:flex;gap:7px;margin-bottom:9px}
+.lvb{flex:1;padding:9px 4px;border-radius:var(--r1);border:1px solid var(--bd);background:var(--c3);color:var(--t2);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;text-align:center;transition:all .15s}
+.lvb.a-iz{background:var(--am1);border-color:var(--am);color:var(--am)}
+.lvb.a-sk{background:var(--rd1);border-color:var(--rd);color:var(--rd)}
+.lvb.a-lb{background:var(--bl1);border-color:var(--bl);color:var(--bl)}
+.lv-ta{width:100%;padding:9px 11px;background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r1);font-size:13px;font-family:inherit;color:var(--tx);outline:none;resize:none;min-height:55px;margin-bottom:9px;color-scheme:dark;transition:border-color .15s}
+.lv-ta:focus{border-color:var(--am)}
+.lv-sub{width:100%;padding:11px;background:var(--am);color:#1a1a1a;border:none;border-radius:var(--r1);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer}
+.lv-sub:disabled{opacity:.4;cursor:not-allowed}
 
-.state-card { display: none; margin-bottom: 1.5rem; }
-.state-card.show { display: block; }
-.checkin-card { background: var(--green-dim); border: 1px solid rgba(29,185,116,0.25); border-radius: var(--r-xl); padding: 1.5rem; text-align: center; }
-.checkout-card { background: var(--pink-dim); border: 1px solid rgba(233,30,140,0.25); border-radius: var(--r-xl); padding: 1.5rem; text-align: center; }
-.state-icon { font-size: 34px; margin-bottom: 8px; }
-.state-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-.state-sub { font-size: 13px; color: var(--soft); margin-bottom: 1.25rem; }
-.checkin-time { font-size: 36px; font-weight: 800; color: var(--green); letter-spacing: -1px; margin-bottom: 4px; }
-.duration { font-size: 14px; color: var(--soft); margin-bottom: 1.25rem; }
-.action-btn { width: 100%; padding: 16px; border: none; border-radius: var(--r-lg); font-size: 16px; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; transition: all 0.15s; }
-.action-btn:active { transform: scale(0.98); }
-.btn-checkin { background: var(--green); color: white; }
-.btn-checkin:hover { background: #17a864; }
-.btn-checkout { background: var(--pink); color: white; }
-.btn-checkout:hover { background: #c91578; }
-
-.done-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 2rem; text-align: center; display: none; margin-bottom: 1.5rem; }
-.done-card.show { display: block; }
-.done-icon { font-size: 44px; margin-bottom: 10px; }
-.done-title { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
-.done-hours { font-size: 40px; font-weight: 800; color: var(--green); margin: 0.75rem 0 0.25rem; letter-spacing: -2px; }
-.done-sub { font-size: 13px; color: var(--soft); line-height: 1.5; }
-
-.already-done { background: var(--card2); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 12px 16px; font-size: 13px; color: var(--soft); text-align: center; margin-bottom: 1rem; display: none; }
-.already-done.show { display: block; }
-
-.divider { display: flex; align-items: center; gap: 10px; margin: 1.25rem 0; }
-.divider::before, .divider::after { content:''; flex:1; height:1px; background: var(--border); }
-.divider span { font-size: 12px; color: var(--hint); }
-
-.timeoff-wrap { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 1.25rem; }
-.timeoff-title { font-size: 13px; font-weight: 600; color: var(--soft); margin-bottom: 10px; }
-.timeoff-btns { display: flex; gap: 8px; margin-bottom: 10px; }
-.timeoff-btn { flex:1; padding: 10px; border-radius: var(--r-md); border: 1px solid var(--border); background: var(--card2); color: var(--soft); font-size: 13px; font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; text-align: center; transition: all 0.15s; }
-.timeoff-btn.act-libur { background: var(--amber-dim); border-color: var(--amber); color: var(--amber); }
-.timeoff-btn.act-izin { background: var(--red-dim); border-color: var(--red); color: var(--red); }
-.timeoff-note { width: 100%; padding: 11px 13px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text); outline: none; resize: none; min-height: 60px; transition: border-color 0.15s; color-scheme: dark; margin-bottom: 10px; }
-.timeoff-note:focus { border-color: var(--amber); }
-.timeoff-submit { width: 100%; padding: 12px; background: var(--amber); color: #1a1a1a; border: none; border-radius: var(--r-md); font-size: 14px; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; cursor: pointer; transition: all 0.15s; }
-.timeoff-submit:hover { background: #d98d08; }
-.timeoff-submit:disabled { opacity: 0.45; cursor: not-allowed; }
-
-.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border-radius: var(--r-md); font-size: 14px; font-weight: 500; font-family: 'Plus Jakarta Sans', sans-serif; display: none; z-index: 999; text-align: center; min-width: 240px; }
-.toast.show { display: block; }
-.toast.success { background: var(--green); color: white; }
-.toast.error { background: var(--red); color: white; }
-.toast.warn { background: var(--amber); color: #1a1a1a; }
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:var(--r1);font-size:13px;font-weight:600;font-family:inherit;display:none;z-index:999;text-align:center;min-width:200px;max-width:300px}
+.toast.vis{display:block}.toast.ok{background:var(--gr);color:#fff}
+.toast.er{background:var(--rd);color:#fff}.toast.wn{background:var(--am);color:#111}
 </style>
 </head>
 <body>
-
-<!-- GEOLOCATION GATE -->
-<div class="geo-gate" id="geo-gate">
-  <div class="geo-card">
-    <div class="geo-icon" id="geo-icon">📍</div>
-    <div class="geo-title" id="geo-title">Verifikasi Lokasi</div>
-    <div class="geo-sub" id="geo-sub">Absen hanya bisa dilakukan di lokasi bakery. Izinkan akses lokasi untuk melanjutkan.</div>
-    <button class="geo-btn" id="geo-btn" onclick="checkLocation()">Izinkan Lokasi</button>
-    <div class="geo-error" id="geo-error"></div>
-    <div class="geo-distance" id="geo-distance"></div>
+<div id="boot"><div class="spin"></div><span>Memuat…</span></div>
+<div id="main">
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand">Absen</div>
+    <div class="tc" id="tc">--:--</div>
+  </div>
+  <div class="clk-box">
+    <div class="clk-big" id="clk">--:--</div>
+    <div class="clk-date" id="cld">--</div>
+  </div>
+  <div class="sec">Pilih namamu</div>
+  <div class="eg" id="eg"></div>
+  <div class="notice" id="notice"></div>
+  <div class="sc" id="sc"></div>
+  <div class="card-dn" id="cdn">
+    <div class="si">🎉</div>
+    <div class="st">Selesai hari ini!</div>
+    <div class="dn-h" id="dn-h">0 jam</div>
+    <div class="dn-ot" id="dn-ot"></div>
+    <div class="ss" id="dn-s"></div>
+  </div>
+  <div class="dv" id="dv" style="display:none"><span>tidak masuk hari ini?</span></div>
+  <div class="lvbox" id="lvbox" style="display:none">
+    <div class="sec" style="margin-bottom:9px">Catat ketidakhadiran</div>
+    <div class="lv-btns">
+      <div class="lvb" id="lb-iz" onclick="selLv('izin')">🙏 Izin</div>
+      <div class="lvb" id="lb-sk" onclick="selLv('sakit')">🤒 Sakit</div>
+      <div class="lvb" id="lb-lb" onclick="selLv('libur')">🏖 Libur</div>
+    </div>
+    <textarea class="lv-ta" id="lv-ta" placeholder="Keterangan (opsional)"></textarea>
+    <button class="lv-sub" id="lv-sub" onclick="submitLv()" disabled>Kirim</button>
   </div>
 </div>
-
-<!-- MAIN APP -->
-<div class="main-app" id="main-app">
-  <div class="wrap">
-    <div class="bakery-name">Tasty Yummy Bakery</div>
-    <div class="page-title">Absen</div>
-    <div class="page-sub" id="page-sub">Pilih namamu untuk mulai</div>
-    <div class="geo-badge"><div class="geo-dot"></div><span id="geo-badge-text">Lokasi terverifikasi</span></div>
-
-    <div class="clock-wrap">
-      <div class="clock-time" id="clock">--:--</div>
-      <div class="clock-date" id="clock-date">--</div>
-    </div>
-
-    <div class="sec-label">Nama kamu</div>
-    <div class="staff-grid" id="staff-grid"></div>
-
-    <div class="already-done" id="already-done"></div>
-    <div class="state-card" id="state-card"></div>
-    <div class="done-card" id="done-card">
-      <div class="done-icon">🎉</div>
-      <div class="done-title">Kerja keras hari ini selesai!</div>
-      <div class="done-hours" id="done-hours">0 jam</div>
-      <div class="done-sub" id="done-sub"></div>
-    </div>
-
-    <div class="divider" id="divider-to" style="display:none;"><span>tidak masuk hari ini?</span></div>
-    <div class="timeoff-wrap" id="timeoff-wrap" style="display:none;">
-      <div class="timeoff-title">Catat izin atau libur</div>
-      <div class="timeoff-btns">
-        <div class="timeoff-btn" id="btn-libur" onclick="selectTimeoff('Libur')">🙏 Libur</div>
-        <div class="timeoff-btn" id="btn-izin" onclick="selectTimeoff('Izin')">🤒 Izin/Sakit</div>
-      </div>
-      <textarea class="timeoff-note" id="to-catatan" placeholder="Keterangan (opsional)"></textarea>
-      <button class="timeoff-submit" id="to-submit" onclick="submitTimeoff()" disabled>Kirim</button>
-    </div>
-  </div>
 </div>
-
-<div class="toast" id="toast"></div>
-
+<div class="toast" id="tst"></div>
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjGEABh0bdl9Ia0-64KlPeRDnRsD5NEj9m9P2pGMqdyfGoET8FIFTBnBXS14nmKRTyIA/exec';
-const STAFF = ['Alfian', 'Maol', 'Dita', 'Defi', 'Erika'];
+const API='/api';
+const O_LAT=-7.818998,O_LNG=112.0107915,RADIUS=100;
+let emps=[],roles=[],selEmp=null,selLvType=null;
+const $=id=>document.getElementById(id);
+const p2=n=>String(n).padStart(2,'0');
+const fmtT=()=>{const d=new Date();return p2(d.getHours())+':'+p2(d.getMinutes());};
+const todayS=()=>{const d=new Date();return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;};
+const monNow=()=>todayS().slice(0,7);
+const ini=n=>(n||'').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const calcH=(a,b)=>{const[ah,am]=a.split(':').map(Number),[bh,bm]=b.split(':').map(Number);const d=(bh*60+bm)-(ah*60+am);return d>0?Math.round(d/60*100)/100:0;};
+const sk=id=>`att_${id}_${todayS()}`;
+const gLS=id=>{try{return JSON.parse(localStorage.getItem(sk(id)))||null}catch{return null}};
+const sLS=(id,v)=>localStorage.setItem(sk(id),JSON.stringify(v));
+function toast(m,t='ok'){const el=$('tst');el.textContent=m;el.className='toast vis '+t;setTimeout(()=>el.className='toast',3200);}
 
-// ---- Geolocation config ----
-const OFFICE_LAT = -7.812650;
-const OFFICE_LNG = 112.067177;
-const MAX_RADIUS = 100; // meter
-
-function haversineDistance(lat1, lng1, lat2, lng2) {
-  const R = 6371000;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+function tick(){
+  const d=new Date();const t=p2(d.getHours())+':'+p2(d.getMinutes());
+  $('clk').textContent=t;$('tc').textContent=t;
+  $('cld').textContent=d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if(selEmp){const s=gLS(selEmp.id);if(s?.status==='in'){const el=$('dur');if(el){const m=Math.floor((Date.now()-s.ts)/60000);el.textContent=m>=60?`${Math.floor(m/60)}j ${m%60}m`:`${m} menit`;}}}
 }
+setInterval(tick,1000);tick();
 
-function checkLocation() {
-  const btn = document.getElementById('geo-btn');
-  const errEl = document.getElementById('geo-error');
-  const distEl = document.getElementById('geo-distance');
-  btn.disabled = true;
-  btn.textContent = 'Mengecek lokasi...';
-  errEl.classList.remove('show');
-  distEl.classList.remove('show');
-
-  if (!navigator.geolocation) {
-    showGeoError('Browser kamu tidak mendukung geolocation.');
-    btn.disabled = false; btn.textContent = 'Izinkan Lokasi';
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      const { latitude, longitude, accuracy } = pos.coords;
-      const dist = haversineDistance(latitude, longitude, OFFICE_LAT, OFFICE_LNG);
-      const distRounded = Math.round(dist);
-
-      distEl.textContent = `Jarak dari bakery: ±${distRounded} meter (akurasi GPS ±${Math.round(accuracy)}m)`;
-      distEl.classList.add('show');
-
-      if (dist <= MAX_RADIUS + accuracy) {
-        // Dalam radius — lanjut ke app
-        document.getElementById('geo-badge-text').textContent = `${distRounded}m dari bakery`;
-        unlockApp();
-      } else {
-        showGeoError(`Kamu berada ${distRounded}m dari bakery. Absen hanya bisa dilakukan dalam radius ${MAX_RADIUS}m.`);
-        btn.disabled = false;
-        btn.textContent = 'Coba Lagi';
-        document.getElementById('geo-icon').textContent = '🚫';
-        document.getElementById('geo-title').textContent = 'Di luar jangkauan';
-      }
-    },
-    (err) => {
-      const msgs = {
-        1: 'Akses lokasi ditolak. Izinkan lokasi di pengaturan browser kamu.',
-        2: 'Lokasi tidak dapat ditentukan. Pastikan GPS aktif.',
-        3: 'Waktu habis. Coba lagi ya.'
-      };
-      showGeoError(msgs[err.code] || 'Gagal mendapatkan lokasi.');
-      btn.disabled = false; btn.textContent = 'Coba Lagi';
-    },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-  );
-}
-
-function showGeoError(msg) {
-  const el = document.getElementById('geo-error');
-  el.textContent = msg; el.classList.add('show');
-}
-
-function unlockApp() {
-  document.getElementById('geo-gate').style.display = 'none';
-  document.getElementById('main-app').classList.add('show');
-  initApp();
-}
-
-// ---- App logic ----
-let selectedStaff = null, selectedTimeoff = null;
-
-function todayKey() { const d=new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }
-function sKey(nama) { return `absen_${nama}_${todayKey()}`; }
-function getState(nama) { try { return JSON.parse(localStorage.getItem(sKey(nama))); } catch(e) { return null; } }
-function setState(nama, data) { localStorage.setItem(sKey(nama), JSON.stringify(data)); }
-function initials(n) { return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
-function nowTime() { const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
-function todayFmt() { const d=new Date(); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(); }
-function bulanFmt() { return new Date().toLocaleDateString('id-ID',{month:'long',year:'numeric'}); }
-function calcJam(masuk,keluar) {
-  const[mh,mm]=masuk.split(':').map(Number);
-  const[kh,km]=keluar.split(':').map(Number);
-  const diff=(kh*60+km)-(mh*60+mm);
-  return diff<=0?'0':(diff/60).toFixed(2);
-}
-
-function updateClock() {
-  const now=new Date();
-  const cl=document.getElementById('clock');
-  const cd=document.getElementById('clock-date');
-  if(cl) cl.textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  if(cd) cd.textContent=now.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  if(selectedStaff){
-    const state=getState(selectedStaff);
-    if(state&&state.status==='checkin'){
-      const el=document.getElementById('dur-live');
-      if(el){
-        const diff=Math.floor((Date.now()-state.ts)/60000);
-        const h=Math.floor(diff/60),m=diff%60;
-        el.textContent=h>0?`${h} jam ${m} menit`:`${m} menit`;
-      }
-    }
-  }
-}
-
-function initApp() {
+async function boot(){
+  try{
+    const[er,rr]=await Promise.all([fetch(API+'?a=employees').then(r=>r.json()),fetch(API+'?a=roles').then(r=>r.json())]);
+    emps=(er.data||[]).filter(e=>e.active!==false&&String(e.active)!=='FALSE');
+    roles=rr.data||[];
+  }catch{emps=[];roles=[];}
+  $('boot').style.display='none';$('main').style.display='block';
   renderGrid();
-  updateClock();
-  setInterval(updateClock, 1000);
 }
 
-function renderGrid() {
-  document.getElementById('staff-grid').innerHTML = STAFF.map(s=>{
-    const state=getState(s);
-    const isIn=state&&state.status==='checkin';
-    return `<div class="staff-btn" id="sbtn-${s}" onclick="selectStaff('${s}')">
-      <div class="s-ava">${initials(s)}</div>
-      <div class="s-name">${s}</div>
-      <div class="s-dot ${isIn?'in':''}" id="sdot-${s}"></div>
+function renderGrid(){
+  const g=$('eg');
+  if(!emps.length){g.innerHTML='<div style="grid-column:span 2;text-align:center;color:var(--t2);padding:2rem;font-size:13px;">Belum ada karyawan. Hubungi admin.</div>';return;}
+  g.innerHTML=emps.map(e=>{
+    const s=gLS(e.id);const on=s?.status==='in';
+    const r=roles.find(x=>x.id===e.role_id);
+    return `<div class="eb" id="eb-${e.id}" onclick="pickEmp('${e.id}')">
+      <div class="ea">${ini(e.name)}</div>
+      <div class="en">${e.name}</div>
+      <div class="er">${r?r.name:''}</div>
+      <div class="ed ${on?'on':''}" id="ed-${e.id}"></div>
     </div>`;
   }).join('');
 }
 
-function selectStaff(nama) {
-  selectedStaff=nama; selectedTimeoff=null;
-  document.querySelectorAll('.staff-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('sbtn-'+nama).classList.add('active');
-  document.getElementById('page-sub').textContent=`Halo, ${nama}! 👋`;
-  renderStateCard();
+async function pickEmp(id){
+  selEmp=emps.find(e=>e.id===id);selLvType=null;
+  document.querySelectorAll('.eb').forEach(b=>b.classList.remove('sel'));
+  $('eb-'+id)?.classList.add('sel');
+  resetLvUI();await renderState();
 }
 
-function renderStateCard() {
-  const nama=selectedStaff;
-  const state=getState(nama);
-  const sc=document.getElementById('state-card');
-  const dc=document.getElementById('done-card');
-  const ad=document.getElementById('already-done');
-  const dv=document.getElementById('divider-to');
-  const tw=document.getElementById('timeoff-wrap');
-
-  sc.classList.remove('show'); sc.innerHTML='';
-  dc.classList.remove('show');
-  ad.classList.remove('show'); ad.textContent='';
-  dv.style.display='none'; tw.style.display='none';
-  document.getElementById('to-catatan').value='';
-  selectedTimeoff=null;
-  document.getElementById('btn-libur').className='timeoff-btn';
-  document.getElementById('btn-izin').className='timeoff-btn';
-  document.getElementById('to-submit').disabled=true;
-
-  if(!state){
-    sc.innerHTML=`<div class="checkin-card">
-      <div class="state-icon">👋</div>
-      <div class="state-title">Belum check-in</div>
-      <div class="state-sub">Tap tombol di bawah untuk mencatat jam masuk</div>
-      <button class="action-btn btn-checkin" onclick="doCheckIn()">CHECK IN SEKARANG</button>
-    </div>`;
-    sc.classList.add('show');
-    dv.style.display='flex'; tw.style.display='block';
-  } else if(state.status==='checkin'){
-    sc.innerHTML=`<div class="checkout-card">
-      <div class="state-icon">⏳</div>
-      <div class="state-title">Sedang bekerja</div>
-      <div class="state-sub">Check-in pukul</div>
-      <div class="checkin-time">${state.time}</div>
-      <div class="duration" id="dur-live">menghitung...</div>
-      <button class="action-btn btn-checkout" onclick="doCheckOut()">CHECK OUT SEKARANG</button>
-    </div>`;
-    sc.classList.add('show');
-  } else if(state.status==='checkout'){
-    dc.classList.add('show');
-    document.getElementById('done-hours').textContent=state.totalJam+' jam';
-    document.getElementById('done-sub').textContent=`Masuk ${state.jamMasuk} · Keluar ${state.jamKeluar}`;
-    ad.textContent='Kamu sudah check-out hari ini. Sampai jumpa besok! 👋';
-    ad.classList.add('show');
-  } else if(state.status==='libur'||state.status==='izin'){
-    ad.textContent=`Kamu sudah tercatat ${state.status} hari ini.`;
-    ad.classList.add('show');
+async function renderState(){
+  const emp=selEmp;if(!emp)return;
+  const sc=$('sc'),cdn=$('cdn'),nt=$('notice');
+  sc.className='sc';sc.innerHTML='';cdn.className='card-dn';
+  nt.className='notice';nt.textContent='';
+  $('dv').style.display='none';$('lvbox').style.display='none';
+  let s=gLS(emp.id);
+  if(!s){
+    try{
+      const res=await fetch(`${API}?a=attendance&month=${monNow()}&eid=${emp.id}`).then(r=>r.json());
+      const rec=(res.data||[]).find(a=>a.date===todayS());
+      if(rec){
+        if(rec.check_in&&!rec.check_out){sLS(emp.id,{status:'in',time:rec.check_in,ts:Date.now()});s=gLS(emp.id);}
+        else if(rec.check_in&&rec.check_out){const role=roles.find(r=>r.id===emp.role_id)||{};const ot=Math.max(0,calcH(rec.check_in,rec.check_out)-(Number(role.std_hours)||8));sLS(emp.id,{status:'out',tIn:rec.check_in,tOut:rec.check_out,h:rec.total_hours,ot});s=gLS(emp.id);}
+      }
+    }catch{}
+  }
+  if(!s){
+    sc.innerHTML=`<div class="card-ci"><div class="si">👋</div><div class="st">Belum check-in</div><div class="ss">Lokasi dicek saat tombol ditekan</div><button class="ab ab-ci" id="ci-btn" onclick="doCI()">CHECK IN</button><div class="loc" id="ci-loc"></div></div>`;
+    sc.classList.add('vis');$('dv').style.display='flex';$('lvbox').style.display='block';
+  } else if(s.status==='in'){
+    sc.innerHTML=`<div class="card-co"><div class="si">⏳</div><div class="st">Sedang bekerja</div><div class="ss">Check-in pukul</div><div class="ci-t">${s.time}</div><div class="dur" id="dur">menghitung…</div><button class="ab ab-co" id="co-btn" onclick="doCO()">CHECK OUT</button><div class="loc" id="co-loc"></div></div>`;
+    sc.classList.add('vis');
+  } else if(s.status==='out'){
+    cdn.classList.add('vis');
+    $('dn-h').textContent=(s.h||0)+' jam';
+    $('dn-ot').textContent=s.ot>0?`Lembur hari ini: ${s.ot} jam`:'';
+    $('dn-s').textContent=`Masuk ${s.tIn} · Keluar ${s.tOut}`;
+    nt.textContent='Sudah check-out. Sampai jumpa besok! 👋';nt.classList.add('vis');
+  } else if(s.status==='leave'){
+    sc.innerHTML=`<div class="card-lv"><div class="si">📋</div><div class="st">Tercatat: ${s.type}</div><div class="ss">${s.notes||'—'}</div></div>`;
+    sc.classList.add('vis');
   }
 }
 
-function doCheckIn(){
-  if(!selectedStaff)return;
-  const time=nowTime();
-  setState(selectedStaff,{status:'checkin',time,ts:Date.now()});
-  document.getElementById('sdot-'+selectedStaff).classList.add('in');
-  renderStateCard();
-  showToast('Check-in berhasil! '+time,'success');
-  sendAbsen({type:'absen',action:'checkin',nama:selectedStaff,jamMasuk:time,jamKeluar:'-',totalJam:'0',tanggal:todayFmt(),bulan:bulanFmt(),status:'Masuk',catatan:''});
-}
+function haversine(la1,lo1,la2,lo2){const R=6371e3,dLa=(la2-la1)*Math.PI/180,dLo=(lo2-lo1)*Math.PI/180;const a=Math.sin(dLa/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+function getLoc(){return new Promise(res=>{if(!navigator.geolocation){res({ok:true,warn:true,note:'GPS tidak tersedia',latLng:'no-gps'});return;}navigator.geolocation.getCurrentPosition(p=>{const d=haversine(p.coords.latitude,p.coords.longitude,O_LAT,O_LNG);const acc=Math.round(p.coords.accuracy);res({ok:d<=RADIUS+acc,dist:Math.round(d),acc,latLng:`${p.coords.latitude.toFixed(6)},${p.coords.longitude.toFixed(6)}`});},()=>res({ok:true,warn:true,note:'GPS error',latLng:'gps-err'}),{enableHighAccuracy:true,timeout:8000,maximumAge:0});})}
 
-function doCheckOut(){
-  if(!selectedStaff)return;
-  const state=getState(selectedStaff);
-  if(!state||state.status!=='checkin')return;
-  const jamKeluar=nowTime();
-  const totalJam=calcJam(state.time,jamKeluar);
-  setState(selectedStaff,{status:'checkout',jamMasuk:state.time,jamKeluar,totalJam});
-  document.getElementById('sdot-'+selectedStaff).classList.remove('in');
-  renderStateCard();
-  showToast('Check-out! Total '+totalJam+' jam','success');
-  sendAbsen({type:'absen',action:'checkout',nama:selectedStaff,jamMasuk:state.time,jamKeluar,totalJam,tanggal:todayFmt(),bulan:bulanFmt(),status:'Masuk',catatan:''});
-}
+async function checkLoc(nid){const el=$(nid);if(!el)return null;el.textContent='Mengecek lokasi…';el.className='loc';const r=await getLoc();if(r.warn){el.textContent=r.note||'Tanpa verifikasi';el.className='loc wn';}else if(r.ok){el.textContent=`✓ ${r.dist}m dari kantor`;el.className='loc ok';}else{el.textContent=`✗ ${r.dist}m — terlalu jauh (max ${RADIUS}m)`;el.className='loc er';}return r;}
 
-function selectTimeoff(status){
-  selectedTimeoff=status;
-  document.getElementById('btn-libur').className='timeoff-btn'+(status==='Libur'?' act-libur':'');
-  document.getElementById('btn-izin').className='timeoff-btn'+(status==='Izin'?' act-izin':'');
-  document.getElementById('to-submit').disabled=false;
+async function doCI(){
+  const btn=$('ci-btn');if(!btn||!selEmp)return;
+  btn.disabled=true;btn.textContent='Verifikasi…';
+  const loc=await checkLoc('ci-loc');
+  if(!loc.ok&&!loc.warn){btn.disabled=false;btn.textContent='CHECK IN';toast(`${loc.dist}m dari kantor`,'er');return;}
+  btn.textContent='Menyimpan…';const t=fmtT();
+  try{await post({action:'checkIn',employee_id:selEmp.id,time:t,lat_lng:loc.latLng});sLS(selEmp.id,{status:'in',time:t,ts:Date.now()});$('ed-'+selEmp.id)?.classList.add('on');toast('Check-in! '+t,'ok');renderState();}
+  catch(e){toast(e.message||'Gagal','er');btn.disabled=false;btn.textContent='CHECK IN';}
 }
-
-function submitTimeoff(){
-  if(!selectedStaff||!selectedTimeoff)return;
-  const catatan=document.getElementById('to-catatan').value.trim();
-  setState(selectedStaff,{status:selectedTimeoff.toLowerCase()});
-  document.getElementById('to-submit').disabled=true;
-  document.getElementById('to-submit').textContent='Mengirim...';
-  sendAbsen({type:'absen',action:'timeoff',nama:selectedStaff,jamMasuk:'-',jamKeluar:'-',totalJam:'0',tanggal:todayFmt(),bulan:bulanFmt(),status:selectedTimeoff,catatan});
-  showToast(selectedTimeoff+' berhasil dicatat','success');
-  setTimeout(()=>renderStateCard(),800);
+async function doCO(){
+  const btn=$('co-btn');if(!btn||!selEmp)return;
+  btn.disabled=true;btn.textContent='Verifikasi…';
+  const loc=await checkLoc('co-loc');
+  if(!loc.ok&&!loc.warn){btn.disabled=false;btn.textContent='CHECK OUT';toast(`${loc.dist}m dari kantor`,'er');return;}
+  btn.textContent='Menyimpan…';const t=fmtT();
+  try{const res=await post({action:'checkOut',employee_id:selEmp.id,time:t,lat_lng:loc.latLng});const s=gLS(selEmp.id)||{};const h=res.data?.hours||0,ot=res.data?.ot||0;sLS(selEmp.id,{status:'out',tIn:s.time,tOut:t,h,ot});$('ed-'+selEmp.id)?.classList.remove('on');toast(`Check-out! ${h}j${ot>0?' (+'+ot+'j OT)':''}`,'ok');renderState();}
+  catch(e){toast(e.message||'Gagal','er');btn.disabled=false;btn.textContent='CHECK OUT';}
 }
-
-async function sendAbsen(payload){
-  try{
-    await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-  }catch(e){}
+function selLv(t){selLvType=t;[{k:'iz',v:'izin'},{k:'sk',v:'sakit'},{k:'lb',v:'libur'}].forEach(({k,v})=>{const el=$('lb-'+k);if(el)el.className='lvb'+(t===v?` a-${k}`:'');});$('lv-sub').disabled=false;}
+async function submitLv(){
+  if(!selEmp||!selLvType)return;const notes=$('lv-ta').value.trim();
+  $('lv-sub').disabled=true;$('lv-sub').textContent='Menyimpan…';
+  try{await post({action:'upsertLeave',row:{employee_id:selEmp.id,date:todayS(),month:monNow(),leave_type:selLvType,notes,approved_by:'self',created_at:''}});sLS(selEmp.id,{status:'leave',type:selLvType,notes});toast(selLvType+' tercatat','ok');setTimeout(renderState,500);}
+  catch(e){toast(e.message||'Gagal','er');$('lv-sub').disabled=false;$('lv-sub').textContent='Kirim';}
 }
-
-function showToast(msg,type=''){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast show '+type;
-  setTimeout(()=>{t.className='toast';},3000);
-}
+function resetLvUI(){selLvType=null;['iz','sk','lb'].forEach(k=>{const el=$('lb-'+k);if(el)el.className='lvb';});const ta=$('lv-ta');if(ta)ta.value='';const sub=$('lv-sub');if(sub){sub.disabled=true;sub.textContent='Kirim';}}
+async function post(p){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});const j=await r.json();if(!j.ok)throw new Error(j.error||'Error');return j;}
+boot();
 </script>
 </body>
 </html>
