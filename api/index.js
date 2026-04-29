@@ -1,3 +1,4 @@
+
 // ================================================================
 // ATTENDANCE APP v2 — Supabase Backend (replaces Google Apps Script)
 // ================================================================
@@ -15,6 +16,7 @@ const app = express();
 app.use(express.json());
 const __dirname = dirname(fileURLToPath(import.meta.url));
 app.use(express.static(join(__dirname, '../public')));
+
 
 
 // ── Supabase client ─────────────────────────────────────────────
@@ -246,9 +248,6 @@ app.post('/api', async (req, res) => {
        
         if (e1 || !rec) throw new Error('Tidak ada record check-in hari ini');
         const hours = calcH(rec.check_in, b.time);
-
-
-
         // Get std_hours from role
         const { data: emp } = await supabase
           .from('employees').select('role_id').eq('id', b.employee_id).single();
@@ -343,44 +342,52 @@ async function generatePayroll(b) {
 
     const workedDays   = empAtt.filter(a => a.status === 'hadir').length;
     const totalHours   = empAtt.reduce((s, a) => s + (Number(a.total_hours) || 0), 0);
-    const dailyOTHours = empAtt.reduce((s, a) => s + (Number(a.overtime_hours) || 0), 0);
-    const allowedOff   = Number(emp.allowed_off) || 4;
-    // usedOff = leave table entries + attendance rows marked libur/izin
-    const offFromAtt   = empAtt.filter(a => a.status === 'libur' || a.status === 'izin').length;
-    const usedOff      = empLv.length + offFromAtt;
 
-    let base = 0, otPay = 0, offDed = 0, totalOTHours = 0;
+    // libur = GRATIS. izin = dipotong per hari dari gaji. Tidak ada jatah bulanan.
+    const totalIzin = empAtt.filter(a => a.status === 'izin').length + empLv.length;
+
+    let base = 0, otPay = 0, offDed = 0, totalOTHours = 0, shortHourDed = 0;
 
     if (emp.type === 'part-time') {
-      const hw      = Number(emp.hourly_wage) || 0;
-      const stdH    = 8; // standard hours/day for PT
+      const hw   = Number(emp.hourly_wage) || 0;
+      const stdH = 8;
       let normalHours = 0, ptOTHours = 0;
       empAtt.filter(a => a.status === 'hadir').forEach(a => {
         const h = Number(a.total_hours) || 0;
         if (h <= stdH) { normalHours += h; }
         else           { normalHours += stdH; ptOTHours += (h - stdH); }
       });
-      normalHours  = Math.round(normalHours * 100) / 100;
-      ptOTHours    = Math.round(ptOTHours   * 100) / 100;
-      base         = Math.round(normalHours * hw);
-      otPay        = Math.round(ptOTHours   * hw * 1.5);
+      normalHours  = Math.round(normalHours  * 100) / 100;
+      ptOTHours    = Math.round(ptOTHours    * 100) / 100;
+      base         = Math.round(normalHours  * hw);
+      otPay        = Math.round(ptOTHours    * hw * 1.5);
       totalOTHours = ptOTHours;
+      // PT tidak ada potongan izin — mereka harian, tidak masuk = tidak dibayar
     } else {
       base = Number(role.base_salary) || 0;
       const std  = Number(role.std_hours) || 8;
       const mult = Number(role.ot_multiplier) || 1.5;
       const hourlyRate = base > 0 ? base / (26 * std) : 0;
 
-      const unusedOff      = Math.max(0, allowedOff - usedOff);
-      const unusedOTHours  = unusedOff * std;
-      totalOTHours = Math.round((dailyOTHours + unusedOTHours) * 100) / 100;
+      // OT = total jam aktual - (hari masuk × std). Lebih akurat dari sum overtime_hours.
+      const workedHours = empAtt.filter(a => a.status === 'hadir')
+                                .reduce((s, a) => s + (Number(a.total_hours) || 0), 0);
+      const shouldHours = workedDays * std;
+      totalOTHours = Math.max(0, Math.round((workedHours - shouldHours) * 100) / 100);
       otPay = Math.round(totalOTHours * hourlyRate * mult);
 
-      const extraOff = Math.max(0, usedOff - allowedOff);
-      offDed = extraOff > 0 ? Math.round((base / 26) * extraOff) : 0;
+      // Short-hour deduction: hari masuk tapi jam < std
+      const shortHours = empAtt.filter(a => a.status === 'hadir').reduce((s, a) => {
+        const h = Number(a.total_hours) || 0;
+        return s + (h > 0 && h < std ? std - h : 0);
+      }, 0);
+      shortHourDed = Math.round(shortHours * hourlyRate);
+
+      // Izin dipotong per hari (tidak ada jatah — setiap izin langsung dipotong)
+      offDed = totalIzin > 0 ? Math.round((base / 26) * totalIzin) : 0;
     }
 
-    const total = base + otPay + share - offDed;
+    const total = base + otPay + share - offDed - shortHourDed;
     return {
       id: uid(), period_id: pid, employee_id: emp.id,
       name: emp.name, role_name: role.name || '', type: emp.type || 'full-time',
@@ -389,9 +396,12 @@ async function generatePayroll(b) {
       daily_ot_hours: Math.round(dailyOTHours * 100) / 100,
       total_ot_hours: Math.round((emp.type === 'part-time' ? 0 : totalOTHours) * 100) / 100,
       ot_pay: emp.type === 'part-time' ? 0 : otPay,
-      allowed_off: allowedOff, used_off: usedOff,
-      extra_off: Math.max(0, usedOff - allowedOff),
-      off_deduction: offDed, bonus: 0,
+      allowed_off: 0, used_off: totalIzin,
+      extra_off: 0,
+      off_deduction: offDed,
+      short_hour_deduction: Math.round(shortHourDed),
+      ot_override: null,
+      bonus: 0,
       rev_share: emp.type === 'part-time' ? 0 : share,
       extra_deductions: 0, total_pay: total,
       notes: null, updated_at: nowJkt()
@@ -407,16 +417,33 @@ async function generatePayroll(b) {
 
 async function updatePayRecord(b) {
   const { data: rec, error } = await supabase
-    .from('payroll_records').select('*').eq('id', b.id).single();
+    .from('payroll_records').select('*, employees(role_id)').eq('id', b.id).single();
   if (error || !rec) throw new Error('Record not found');
 
   const bonus  = Number(b.bonus) || 0;
   const extraD = Number(b.extra_deductions) || 0;
-  const total  = Number(rec.base_salary) + Number(rec.ot_pay) + Number(rec.rev_share)
-               + bonus - Number(rec.off_deduction) - extraD;
+
+  // OT override: if provided, recalculate ot_pay
+  let otPay = Number(rec.ot_pay);
+  let otOverride = b.ot_override != null ? Number(b.ot_override) : null;
+  if (otOverride != null) {
+    // Get role for hourly rate
+    const empRoleId = rec.employees?.role_id;
+    let std = 8, mult = 1.5, base = Number(rec.base_salary);
+    if (empRoleId) {
+      const { data: role } = await supabase.from('roles').select('*').eq('id', empRoleId).single();
+      if (role) { std = Number(role.std_hours)||8; mult = Number(role.ot_multiplier)||1.5; }
+    }
+    const hourlyRate = base > 0 ? base / (26 * std) : 0;
+    otPay = Math.round(otOverride * hourlyRate * mult);
+  }
+
+  const total = Number(rec.base_salary) + otPay + Number(rec.rev_share)
+              + bonus - Number(rec.off_deduction) - extraD;
 
   const { error: ue } = await supabase.from('payroll_records').update({
     bonus, extra_deductions: extraD, total_pay: total,
+    ot_override: otOverride, ot_pay: otPay,
     notes: b.notes || null, updated_at: nowJkt()
   }).eq('id', b.id);
   if (ue) throw ue;

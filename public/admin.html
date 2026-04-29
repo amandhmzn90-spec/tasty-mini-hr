@@ -198,6 +198,9 @@ select.fi option{background:var(--c2)}
 
 .sec{font-size:10px;font-weight:700;color:var(--t2);letter-spacing:.1em;text-transform:uppercase;margin:0 0 8px}
 .divider{height:1px;background:var(--bd);margin:1.1rem 0}
+.dow-lbl{display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:4px 8px;border:1px solid var(--bd2);border-radius:var(--r1);transition:all .15s}
+.dow-lbl:has(input:checked){background:var(--vi1);border-color:var(--vi);color:var(--vi)}
+.dow-cb{width:12px;height:12px;accent-color:var(--vi)}
 </style>
 </head>
 <body>
@@ -232,6 +235,12 @@ select.fi option{background:var(--c2)}
     <button class="nb" id="nb-report" onclick="nav('report')">Laporan Absen</button>
     <button class="nb" id="nb-pay" onclick="nav('pay')">Penggajian</button>
     <button class="nb" id="nb-org" onclick="nav('org')">Struktur Organisasi</button>
+
+    <!-- BUKU BESAR -->
+    <div class="sb-sec" id="sb-bb-sec" style="margin-top:.5rem">Buku Besar</div>
+    <a class="nb" id="nb-bb1" href="https://tasty-bukubesar.vercel.app/" target="_blank" style="text-decoration:none;display:block">↗ Transaksi</a>
+    <a class="nb" id="nb-bb2" href="https://tasty-bukubesar.vercel.app/pengeluaran.html" target="_blank" style="text-decoration:none;display:block">↗ Pengeluaran</a>
+    <a class="nb" id="nb-bb3" href="https://tasty-bukubesar.vercel.app/laporan.html" target="_blank" style="text-decoration:none;display:block">↗ Laporan</a>
 
     <div class="sb-gap"></div>
     <button class="sb-out" onclick="logout()">Keluar</button>
@@ -271,7 +280,19 @@ select.fi option{background:var(--c2)}
         </div>
         <input type="hidden" id="af-id">
       </div>
-      <div class="sec">Log bulan ini</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <div class="sec" style="margin:0">Log bulan ini</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select class="fi" id="att-filter-emp" style="padding:5px 9px;font-size:12px;min-width:140px" onchange="renderAtt()">
+            <option value="">Semua karyawan</option>
+          </select>
+          <select class="fi" id="att-filter-type" style="padding:5px 9px;font-size:12px" onchange="renderAtt()">
+            <option value="">Semua tipe</option>
+            <option value="full-time">Full-time</option>
+            <option value="part-time">Part-time</option>
+          </select>
+        </div>
+      </div>
       <div id="att-tbl"><div class="tl">Memuat…</div></div>
     </div>
 
@@ -312,6 +333,17 @@ select.fi option{background:var(--c2)}
           </div>
           <div class="fl" id="ef-hw-w" style="display:none"><label>Upah / hari (Rp)</label><input class="fi" type="number" id="ef-hw" placeholder="50000"></div>
           <div class="fl" id="ef-off-w"><label>Jatah libur / bulan</label><input class="fi" type="number" id="ef-off" value="4" min="0" max="30"></div>
+          <div class="fl" id="ef-offdays-w"><label>Jadwal libur tetap <span style="font-size:10px;color:var(--t3)">(opsional, tidak dihitung dari jatah)</span></label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+              <label class="dow-lbl"><input type="checkbox" class="dow-cb" value="0"> Min</label>
+              <label class="dow-lbl"><input type="checkbox" class="dow-cb" value="1"> Sen</label>
+              <label class="dow-lbl"><input type="checkbox" class="dow-cb" value="2"> Sel</label>
+              <label class="dow-lbl"><input type="checkbox" class="dow-cb" value="3"> Rab</label>
+              <label class="dow-lbl"><input type="checkbox" class="dow-cb" value="4"> Kam</label>
+              <label class="dow-lbl"><input type="checkbox" class="dow-cb" value="5"> Jum</label>
+              <label class="dow-lbl"><input type="checkbox" class="dow-cb" value="6"> Sab</label>
+            </div>
+          </div>
           <div class="fl"><label>No. HP (WhatsApp)</label><input class="fi" type="tel" id="ef-phone" placeholder="08123456789"></div>
         </div>
         <div class="br">
@@ -394,6 +426,7 @@ function applyRole(){
   ['nb-att','nb-roles','nb-emps'].forEach(id=>{$( id).style.display=isAdmin?'block':'none';});
   $('sb-owner-sec').style.display=isOwner?'block':'none';
   ['nb-report','nb-pay','nb-org'].forEach(id=>{$(id).style.display=isOwner?'block':'none';});
+  ['sb-bb-sec','nb-bb1','nb-bb2','nb-bb3'].forEach(id=>{const el=$(id);if(el)el.style.display=isOwner?'block':'none';});
   // set first active page
   if(isAdmin) nav('att');
   else        nav('report');
@@ -431,6 +464,9 @@ function popSels(){
   const ro='<option value="">-- Pilih jabatan --</option>'+roles.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
   ['af-emp','lf-emp'].forEach(id=>{const el=$(id);if(el)el.innerHTML=eo;});
   const ef=$('ef-role');if(ef)ef.innerHTML=ro;
+  // populate att filter dropdown
+  const fe=$('att-filter-emp');
+  if(fe) fe.innerHTML='<option value="">Semua karyawan</option>'+emps.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
 }
 if(sess)loadAll();
 
@@ -439,10 +475,29 @@ const spill=s=>({hadir:'p-gr',izin:'p-am',sakit:'p-rd',libur:'p-bl',cuti:'p-vi'}
 
 function renderAtt(){
   const el=$('att-tbl');
-  if(!att.length){el.innerHTML='<div class="empty">Tidak ada data absensi bulan ini.</div>';return;}
 
-  // Sort by date descending, then by name
-  const s=[...att].sort((a,b)=>b.date.localeCompare(a.date)||((emps.find(e=>e.id===a.employee_id)||{}).name||'').localeCompare((emps.find(e=>e.id===b.employee_id)||{}).name||''));
+  // Read filters
+  const filterEmp=($('att-filter-emp')&&$('att-filter-emp').value)||'';
+  const filterType=($('att-filter-type')&&$('att-filter-type').value)||'';
+
+  // Apply filters
+  let filtered=att;
+  if(filterEmp) filtered=filtered.filter(a=>a.employee_id===filterEmp);
+  if(filterType){
+    const empIds=new Set(emps.filter(e=>e.type===filterType).map(e=>e.id));
+    filtered=filtered.filter(a=>empIds.has(a.employee_id));
+  }
+
+  if(!filtered.length){el.innerHTML='<div class="empty">Tidak ada data untuk filter ini.</div>';return;}
+
+  // Sort by date descending, then by type (FT first), then name
+  const s=[...filtered].sort((a,b)=>{
+    const dc=b.date.localeCompare(a.date); if(dc) return dc;
+    const ea=emps.find(e=>e.id===a.employee_id)||{};
+    const eb=emps.find(e=>e.id===b.employee_id)||{};
+    const tc=(ea.type==='full-time'?0:1)-(eb.type==='full-time'?0:1); if(tc) return tc;
+    return (ea.name||'').localeCompare(eb.name||'');
+  });
 
   // Group by date
   const byDate={};
@@ -452,7 +507,9 @@ function renderAtt(){
   });
 
   const DOW=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-  const totalEmps=emps.filter(e=>e.active!==false&&String(e.active)!=='FALSE').length;
+  const totalFT=emps.filter(e=>e.active!==false&&String(e.active)!=='FALSE'&&e.type!=='part-time').length;
+  const totalPT=emps.filter(e=>e.active!==false&&String(e.active)!=='FALSE'&&e.type==='part-time').length;
+  const totalEmps=totalFT+totalPT;
 
   let html=`<div class="tw"><div class="th" style="grid-template-columns:1.4fr 68px 68px 58px 62px 85px 72px">
     <span>Karyawan</span><span>Masuk</span><span>Keluar</span><span>Jam</span><span>OT</span><span>Status</span><span>Aksi</span>
@@ -471,9 +528,13 @@ function renderAtt(){
     const missingOut=dayRows.filter(r=>r.status==='hadir'&&r.check_in&&!r.check_out).length;
     const missingIn=dayRows.filter(r=>r.status==='hadir'&&!r.check_in).length;
 
-    // Build badges
-    let badges=`<span class="day-badge db-total">${dayRows.length}/${totalEmps} orang</span>`;
-    if(hadir>0) badges+=`<span class="day-badge db-ok">${hadir} hadir</span>`;
+    // Build badges — count only FT for hadir badge
+    const ftRows=dayRows.filter(r=>{const e=emps.find(x=>x.id===r.employee_id);return !e||e.type!=='part-time';});
+    const ptRows=dayRows.filter(r=>{const e=emps.find(x=>x.id===r.employee_id);return e&&e.type==='part-time';});
+    const hadirFT=ftRows.filter(r=>r.status==='hadir').length;
+    const hadirPT=ptRows.filter(r=>r.status==='hadir').length;
+    let badges=`<span class="day-badge db-total">${ftRows.filter(r=>r.status==='hadir').length}/${totalFT} FT</span>`;
+    if(hadirPT>0) badges+=`<span class="day-badge db-total" style="background:var(--am1);color:var(--am)">${hadirPT} PT</span>`;
     if(libur>0) badges+=`<span class="day-badge db-off">${libur} libur</span>`;
     if(izin>0)  badges+=`<span class="day-badge" style="background:var(--vi1);color:var(--vi)">${izin} izin</span>`;
     if(missingOut>0) badges+=`<span class="day-badge db-miss">⚠ ${missingOut} blm checkout</span>`;
@@ -485,46 +546,59 @@ function renderAtt(){
       ${badges}
     </div>`;
 
-    dayRows.forEach(r=>{
-      const emp=emps.find(e=>e.id===r.employee_id);
-      const isLibur=r.status==='libur';
-      const isIzin=r.status==='izin';
-      const noIn=!r.check_in&&!isLibur&&!isIzin;
-      const noOut=r.check_in&&!r.check_out&&!isLibur&&!isIzin;
-      const miss=noIn||noOut;
-      const tag=noIn?'⚠ No check-in':noOut?'⚠ No check-out':'';
-      const rowCls=isLibur?'off':isIzin?'izin-row':miss?'miss':'';
-
-      if(isLibur||isIzin){
-        const label=isLibur?'🏖 Libur':'📋 Izin';
-        const pillCls=isLibur?'p-bl':'p-vi';
-        html+=`<div class="tr ${rowCls}" style="grid-template-columns:1.4fr 68px 68px 58px 62px 85px 72px">
-          <span class="cl p">${emp?emp.name:'?'}</span>
-          <span class="cl" style="color:var(--t3)">—</span>
-          <span class="cl" style="color:var(--t3)">—</span>
-          <span class="cl" style="color:var(--t3)">—</span>
-          <span class="cl" style="color:var(--t3)">—</span>
-          <span class="cl"><span class="pill ${pillCls}">${label}</span></span>
-          <span class="cl" style="display:flex;gap:3px">
-            <button class="bed" onclick="editAtt('${r.id}')">Edit</button>
-            <button class="be" onclick="delAtt('${r.id}')">×</button>
-          </span>
-        </div>`;
-      } else {
-        html+=`<div class="tr ${rowCls}" style="grid-template-columns:1.4fr 68px 68px 58px 62px 85px 72px">
-          <span class="cl p">${emp?emp.name:'?'}${miss?`<span class="miss-tag">${tag}</span>`:''}</span>
-          <span class="cl ${r.check_in?'ok':'er'}">${r.check_in||'—'}</span>
-          <span class="cl ${r.check_out?'ok':r.check_in?'wn':'er'}">${r.check_out||'—'}</span>
-          <span class="cl">${r.total_hours?r.total_hours+'j':'-'}</span>
-          <span class="cl ${Number(r.overtime_hours)>0?'wn':''}">${Number(r.overtime_hours)>0?'+'+r.overtime_hours+'j':'-'}</span>
-          <span class="cl"><span class="pill ${spill(r.status)}">${r.status||'hadir'}</span></span>
-          <span class="cl" style="display:flex;gap:3px">
-            <button class="bed" onclick="editAtt('${r.id}')">Edit</button>
-            <button class="be" onclick="delAtt('${r.id}')">×</button>
-          </span>
-        </div>`;
-      }
-    });
+    // Render FT rows first with subheader, then PT
+    function renderAttRows(rowList, groupLabel) {
+      if (!rowList.length) return;
+      html += '<div style="padding:3px 13px;background:var(--c1);font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase">' + groupLabel + '</div>';
+      rowList.forEach(function(r) {
+        var emp = emps.find(function(e){ return e.id === r.employee_id; });
+        var isLibur = r.status === 'libur';
+        var isIzin  = r.status === 'izin';
+        var noIn    = !r.check_in && !isLibur && !isIzin;
+        var noOut   = r.check_in && !r.check_out && !isLibur && !isIzin;
+        var miss    = noIn || noOut;
+        var tag     = noIn ? '⚠ No check-in' : noOut ? '⚠ No check-out' : '';
+        var rowCls  = isLibur ? 'off' : isIzin ? 'izin-row' : miss ? 'miss' : '';
+        var COLS    = 'grid-template-columns:1.4fr 68px 68px 58px 62px 85px 72px';
+        var empName = emp ? emp.name : '?';
+        if (isLibur || isIzin) {
+          var statusLabel = isLibur ? '🏖 Libur' : '📋 Izin';
+          var pillCls     = isLibur ? 'p-bl' : 'p-vi';
+          var rid = r.id;
+          html += '<div class="tr ' + rowCls + '" style="' + COLS + '">'
+            + '<span class="cl p">' + empName + '</span>'
+            + '<span class="cl" style="color:var(--t3)">&#8212;</span>'
+            + '<span class="cl" style="color:var(--t3)">&#8212;</span>'
+            + '<span class="cl" style="color:var(--t3)">&#8212;</span>'
+            + '<span class="cl" style="color:var(--t3)">&#8212;</span>'
+            + '<span class="cl"><span class="pill ' + pillCls + '">' + statusLabel + '</span></span>'
+            + '<span class="cl" style="display:flex;gap:3px">'
+            + '<button class="bed" onclick="editAtt(this.dataset.id)" data-id="' + rid + '">Edit</button>'
+            + '<button class="be" onclick="delAtt(this.dataset.id)" data-id="' + rid + '">x</button>'
+            + '</span></div>';
+        } else {
+          var rid     = r.id;
+          var missTag  = miss ? '<span class="miss-tag">' + tag + '</span>' : '';
+          var ciCls    = r.check_in ? 'ok' : 'er';
+          var coCls    = r.check_out ? 'ok' : r.check_in ? 'wn' : 'er';
+          var otVal    = Number(r.overtime_hours) > 0 ? '+' + r.overtime_hours + 'j' : '-';
+          var otCls    = Number(r.overtime_hours) > 0 ? 'wn' : '';
+          html += '<div class="tr ' + rowCls + '" style="' + COLS + '">'
+            + '<span class="cl p">' + empName + missTag + '</span>'
+            + '<span class="cl ' + ciCls + '">' + (r.check_in || '&#8212;') + '</span>'
+            + '<span class="cl ' + coCls + '">' + (r.check_out || '&#8212;') + '</span>'
+            + '<span class="cl">' + (r.total_hours ? r.total_hours + 'j' : '-') + '</span>'
+            + '<span class="cl ' + otCls + '">' + otVal + '</span>'
+            + '<span class="cl"><span class="pill ' + spill(r.status) + '">' + (r.status || 'hadir') + '</span></span>'
+            + '<span class="cl" style="display:flex;gap:3px">'
+            + '<button class="bed" onclick="editAtt(this.dataset.id)" data-id="' + rid + '">Edit</button>'
+            + '<button class="be" onclick="delAtt(this.dataset.id)" data-id="' + rid + '">x</button>'
+            + '</span></div>';
+        }
+      });
+    }
+    renderAttRows(ftRows, 'Full-time');
+    renderAttRows(ptRows, 'Part-time');
   });
 
   html+='</div>';
@@ -652,11 +726,15 @@ function editEmp(id){
   $('ef-hw').value=e.type==='part-time'?Math.round((e.hourly_wage||0)*8):(e.hourly_wage||'');
   $('ef-off').value=e.type==='part-time'?0:(e.allowed_off||4);
   $('ef-phone').value=e.phone||'';
+  // Load off_days checkboxes
+  const od=e.off_days||[];
+  document.querySelectorAll('.dow-cb').forEach(cb=>{cb.checked=od.map(String).includes(cb.value);});
   toggleHW();$('ef-ttl').textContent='Edit Karyawan';$('ef-cancel').style.display='';scrollTo(0,0);
 }
 function cancelEmp(){
   ['ef-id','ef-name','ef-hw','ef-phone'].forEach(i=>{const el=$(i);if(el)el.value='';});
   $('ef-role').value='';$('ef-type').value='full-time';$('ef-off').value='4';
+  document.querySelectorAll('.dow-cb').forEach(cb=>{cb.checked=false;});
   toggleHW();$('ef-ttl').textContent='Tambah Karyawan';$('ef-cancel').style.display='none';
 }
 async function saveEmp(){
@@ -665,10 +743,12 @@ async function saveEmp(){
   if(!name){toast('Nama harus diisi!','wn');return;}
   if(!rid){toast('Pilih jabatan!','wn');return;}
   try{
+    const offDays=[...document.querySelectorAll('.dow-cb:checked')].map(cb=>cb.value);
     await POST({action:'upsertEmployee',row:{
       id:$('ef-id').value||'',name,role_id:rid,type:$('ef-type').value,
       hourly_wage:Number($('ef-hw').value)||0,
       allowed_off:isPT?0:(Number($('ef-off').value)||4),
+      off_days:offDays,
       phone:$('ef-phone').value.trim()||null,
       active:true,created_at:''
     }});
@@ -707,39 +787,31 @@ function renderReport(){
     const empLv=lv.filter(l=>l.employee_id===emp.id);
     const masuk=empAtt.filter(a=>a.status==='hadir').length;
     const totalH=Math.round(empAtt.reduce((s,a)=>s+(Number(a.total_hours)||0),0)*100)/100;
-    const dailyOT=Math.round(empAtt.reduce((s,a)=>s+(Number(a.overtime_hours)||0),0)*100)/100;
-    const offFromAtt=empAtt.filter(a=>a.status==='libur'||a.status==='izin').length;
-    const usedOff=empLv.length+offFromAtt;
-    const allowedOff=Number(emp.allowed_off)||4;
-    const unusedOff=Math.max(0,allowedOff-usedOff);
-    const extraOff=Math.max(0,usedOff-allowedOff);
+    // libur = GRATIS, tidak dipotong. izin = dipotong dari jatah.
+    const totalLibur=empAtt.filter(a=>a.status==='libur').length;
+    const totalIzin=empAtt.filter(a=>a.status==='izin').length+empLv.length;
 
-    // Seharusnya = masuk × std_hours
+    // OT = total jam - (hari masuk × std jam). Murni dari jam kerja aktual.
     const shouldH=masuk*stdH;
-    // OT total: daily OT + bonus OT dari sisa libur (full-time only)
-    const unusedOTH=isPT?0:unusedOff*stdH;
-    const totalOT=Math.round((dailyOT+unusedOTH)*100)/100;
+    const totalOT=Math.max(0,Math.round((totalH-shouldH)*100)/100);
 
-    // Off note
-    let offNote='';
-    if(extraOff>0) offNote=`<span style="color:var(--rd)">+${extraOff} extra → dipotong</span>`;
-    else if(unusedOff>0) offNote=`<span style="color:var(--gr)">${unusedOff} sisa → +${unusedOTH}j OT</span>`;
-    else offNote=`<span style="color:var(--t2)">Tepat ${allowedOff}</span>`;
-
-    // Earnings estimate row
+    // Izin dipotong per hari dari gaji. Tidak ada jatah bulanan.
+    // Earnings estimate
     let earnNote='';
     if(isPT){
       const hw=Number(emp.hourly_wage)||0;
+      const otEst=Math.round(totalOT*hw*1.5);
       const est=Math.round(totalH*hw);
-      const otEst=Math.round(Math.max(0,totalH-(masuk*stdH))*hw*1.5);
-      earnNote=`<span style="color:var(--gr)">≈ ${fmtRp(est)}</span>${otEst>0?`<span style="color:var(--am);margin-left:4px">+${fmtRp(otEst)} OT</span>`:''}`;
+      earnNote='<span style="color:var(--gr)">≈ '+fmtRp(est)+'</span>'+(otEst>0?'<span style="color:var(--am);margin-left:4px">+'+fmtRp(otEst)+' OT</span>':'');
     } else {
       const base=Number(role.base_salary)||0;
       const hourlyRate=base>0?base/(26*stdH):0;
       const otPay=Math.round(totalOT*hourlyRate*(Number(role.ot_multiplier)||1.5));
-      const offDed=extraOff>0?Math.round((base/26)*extraOff):0;
-      const est=base+otPay-offDed;
-      earnNote=`<span style="color:var(--gr)">≈ ${fmtRp(est)}</span>${otPay>0?`<span style="color:var(--am);margin-left:4px">+${fmtRp(otPay)} OT</span>`:''}${offDed>0?`<span style="color:var(--rd);margin-left:4px">−${fmtRp(offDed)}</span>`:''}`;
+      const izinDed=totalIzin>0?Math.round((base/26)*totalIzin):0;
+      const est=base+otPay-izinDed;
+      earnNote='<span style="color:var(--gr)">≈ '+fmtRp(est)+'</span>'
+        +(otPay>0?'<span style="color:var(--am);margin-left:4px">+'+fmtRp(otPay)+' OT</span>':'')
+        +(izinDed>0?'<span style="color:var(--rd);margin-left:4px">−'+fmtRp(izinDed)+' izin</span>':'');
     }
 
     return `<div style="background:var(--c2);border:1px solid var(--bd);border-radius:var(--r2);padding:14px 16px;margin-bottom:8px">
@@ -749,7 +821,7 @@ function renderReport(){
           <div style="font-size:14px;font-weight:700">${emp.name}</div>
           <div style="font-size:11px;color:var(--t2)">${role.name||'-'} · <span class="pill ${isPT?'p-am':'p-bl'}">${isPT?'Part-time':'Full-time'}</span></div>
         </div>
-        <div style="margin-left:auto;text-align:right;font-size:11px;color:var(--t2)">${offNote}<br><span style="color:var(--t3)">libur ${usedOff}/${allowedOff} hr</span></div>
+        <div style="margin-left:auto;text-align:right;font-size:11px;color:var(--t2)"><span style="color:var(--t3)">${totalLibur>0?totalLibur+' libur':''}</span>${totalIzin>0?'<span style="color:var(--rd);margin-left:6px">'+totalIzin+' izin dipotong</span>':''}</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
         <div style="background:var(--c3);border-radius:var(--r1);padding:8px 10px">
@@ -764,7 +836,6 @@ function renderReport(){
         <div style="background:var(--c3);border-radius:var(--r1);padding:8px 10px">
           <div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Lembur</div>
           <div style="font-size:16px;font-weight:800;color:${totalOT>0?'var(--am)':'var(--t3)'}">+${totalOT} <span style="font-size:11px;font-weight:500;color:var(--t2)">jam</span></div>
-          ${!isPT&&unusedOTH>0?`<div style="font-size:10px;color:var(--t3)">incl. ${unusedOTH}j sisa off</div>`:''}
         </div>
         <div style="background:var(--c3);border-radius:var(--r1);padding:8px 10px">
           <div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Est. gaji</div>
@@ -776,25 +847,29 @@ function renderReport(){
 
   html+=`<div class="sec">Rekap per karyawan</div>${rows}`;
 
-  // leave log (from both leave table + att rows)
+  // leave log — libur from att, izin from att + leave table
   const allOffRows=[
-    ...lv.map(l=>({date:l.date,employee_id:l.employee_id,type:l.leave_type||'izin',notes:l.notes||'-',src:'leave'})),
-    ...att.filter(a=>a.status==='libur'||a.status==='izin').map(a=>({date:a.date,employee_id:a.employee_id,type:a.status,notes:a.notes||'-',src:'att'}))
+    ...lv.map(l=>({date:l.date,employee_id:l.employee_id,type:'izin',notes:l.notes||'-'})),
+    ...att.filter(a=>a.status==='libur'||a.status==='izin').map(a=>({
+      date:a.date,employee_id:a.employee_id,type:a.status,notes:a.notes||'-'
+    }))
   ].sort((a,b)=>b.date.localeCompare(a.date));
 
   if(allOffRows.length){
     const lvRows=allOffRows.map(l=>{
       const emp=emps.find(e=>e.id===l.employee_id);
-      return `<div class="tr" style="grid-template-columns:95px 1.5fr 80px 1fr">
-        <span class="cl">${l.date}</span>
-        <span class="cl p">${emp?emp.name:'?'}</span>
-        <span class="cl"><span class="pill ${l.type==='libur'?'p-bl':l.type==='izin'?'p-vi':'p-am'}">${l.type}</span></span>
-        <span class="cl">${l.notes}</span>
-      </div>`;
+      const isLibur=l.type==='libur';
+      return '<div class="tr" style="grid-template-columns:95px 1.5fr 90px 1fr">'
+        +'<span class="cl">'+l.date+'</span>'
+        +'<span class="cl p">'+(emp?emp.name:'?')+'</span>'
+        +'<span class="cl"><span class="pill '+(isLibur?'p-bl':'p-vi')+'">'+(isLibur?'🏖 Libur':'📋 Izin')+'</span>'
+        +(isLibur?'<span style="font-size:9px;color:var(--gr);margin-left:4px">gratis</span>':'<span style="font-size:9px;color:var(--rd);margin-left:4px">-jatah</span>')+'</span>'
+        +'<span class="cl">'+l.notes+'</span>'
+        +'</div>';
     }).join('');
     html+=`<div class="sec" style="margin-top:1.25rem">Log ketidakhadiran</div>
     <div class="tw">
-      <div class="th" style="grid-template-columns:95px 1.5fr 80px 1fr">
+      <div class="th" style="grid-template-columns:95px 1.5fr 90px 1fr">
         <span>Tanggal</span><span>Karyawan</span><span>Tipe</span><span>Catatan</span>
       </div>${lvRows}</div>`;
   }
@@ -845,34 +920,54 @@ function renderPay(){
       <div><span style="color:var(--am)">Part-time:</span> Upah harian (8j) + lembur >8j/hari × 1.5 + Bonus</div>
     </div>`;
 
-    const rows=records.map(r=>{
+    // Group by type
+    const ftRec=records.filter(r=>r.type==='full-time');
+    const ptRec=records.filter(r=>r.type==='part-time');
+
+    const COLS='1.4fr 55px 90px 55px 65px 70px 80px 1fr 80px';
+    const renderPayRows=list=>list.map(r=>{
       const isOT=Number(r.total_ot_hours)>0;
       const isDed=Number(r.off_deduction)>0;
-      return `<div class="tr" style="grid-template-columns:1.3fr 55px 95px 60px 70px 75px 70px 90px 80px">
+      const isShort=Number(r.short_hour_deduction)>0;
+      const hasOvr=r.ot_override!=null&&r.ot_override!=='';
+      return `<div class="tr" style="grid-template-columns:${COLS}">
         <span class="cl p">${r.name}</span>
         <span class="cl"><span class="pill ${r.type==='full-time'?'p-bl':'p-am'}">${r.type==='full-time'?'FT':'PT'}</span></span>
         <span class="cl">${fmtRp(r.base_salary)}</span>
         <span class="cl">${r.total_hours}j</span>
-        <span class="cl ${isOT?'wn':''}">${isOT?'+'+r.total_ot_hours+'j':'-'}</span>
+        <span class="cl ${isOT?'wn':''}">${isOT?'+'+r.total_ot_hours+'j':'-'}${hasOvr?'<span style="font-size:9px;color:var(--vi)"> ✎</span>':''}</span>
         <span class="cl">${isOT?fmtRp(r.ot_pay):'-'}</span>
-        <span class="cl ${isDed?'rd':''}">${isDed?'-'+fmtRp(r.off_deduction):'-'}</span>
+        <span class="cl ${isDed||isShort?'rd':''}">
+          ${isDed?'<div>off: -'+fmtRp(r.off_deduction)+'</div>':''}
+          ${isShort?'<div>tlbt: -'+fmtRp(r.short_hour_deduction)+'</div>':''}
+          ${!isDed&&!isShort?'-':''}
+        </span>
         <span class="cl">
-          <div class="bonus-row">
-            <input class="bonus-inp" type="number" id="bi-${r.id}" value="${r.bonus||0}" min="0" placeholder="0"
-              onchange="liveBonus('${r.id}')">
+          <div class="bonus-row" style="display:flex;flex-direction:column;gap:3px">
+            <input class="bonus-inp" type="number" id="bi-${r.id}" value="${r.bonus||0}" min="0" placeholder="Bonus 0"
+              onchange="liveBonus('${r.id}')" style="margin-bottom:2px">
+            <input class="bonus-inp" type="number" id="oi-${r.id}" value="${r.ot_override!=null?r.ot_override:''}" min="0" placeholder="OT override jam"
+              onchange="liveBonus('${r.id}')" style="border-color:var(--am1);color:var(--am)">
+            <input class="bonus-inp" type="number" id="di-${r.id}" value="${r.extra_deductions||0}" min="0" placeholder="Potongan 0"
+              onchange="liveBonus('${r.id}')" style="border-color:var(--rd1);color:var(--rd)">
+            <input class="bonus-inp" id="ni-${r.id}" value="${r.notes||''}" placeholder="Keterangan…"
+              style="font-size:10px;color:var(--t2)" onchange="">
           </div>
-          <div style="font-size:10px;color:var(--t2);margin-top:2px">rev: ${fmtRp(r.rev_share)}</div>
+          <div style="font-size:10px;color:var(--t2);margin-top:3px">rev: ${fmtRp(r.rev_share)}</div>
         </span>
         <span class="cl" style="color:var(--gr);font-weight:700" id="tp-${r.id}">${fmtRp(r.total_pay)}</span>
       </div>`;
     }).join('');
 
-    wrap.innerHTML=mnav+stat+legend+`<div class="sec">Slip gaji — edit bonus langsung di kolom</div>
-    <div class="tw">
-      <div class="th" style="grid-template-columns:1.3fr 55px 95px 60px 70px 75px 70px 90px 80px">
-        <span>Nama</span><span>Tipe</span><span>Gaji pokok</span><span>Jam</span><span>OT jam</span><span>OT pay</span><span>Ded.</span><span>Bonus</span><span>Total</span>
-      </div>${rows}
-    </div>
+    const TH=`<div class="th" style="grid-template-columns:${COLS}">
+      <span>Nama</span><span>Tipe</span><span>Gaji pokok</span><span>Jam</span><span>OT jam</span><span>OT pay</span><span>Potongan</span><span>Bonus/OT✎/Potong/Ket.</span><span>Total</span>
+    </div>`;
+
+    let tableHtml='';
+    if(ftRec.length) tableHtml+=`<div class="sec">Full-time (${ftRec.length} karyawan)</div><div class="tw">${TH}${renderPayRows(ftRec)}</div>`;
+    if(ptRec.length) tableHtml+=`<div class="sec" style="margin-top:.75rem">Part-time (${ptRec.length} karyawan)</div><div class="tw">${TH}${renderPayRows(ptRec)}</div>`;
+
+    wrap.innerHTML=mnav+stat+legend+tableHtml+`
     <div class="br" style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap">
       <button class="bgr" onclick="saveAllBonus()">Simpan semua bonus</button>
       <button class="bs" onclick="refreshPay()" style="border-color:var(--am);color:var(--am)">🔄 Refresh Payroll</button>
@@ -885,15 +980,36 @@ function renderPay(){
 function liveBonus(id){
   const rec=payR.find(r=>r.id===id); if(!rec) return;
   const bonus=Number($('bi-'+id)?.value)||0;
-  const total=Number(rec.base_salary)+Number(rec.ot_pay)+Number(rec.rev_share)+bonus-Number(rec.off_deduction);
+  const ded=Number($('di-'+id)?.value)||0;
+  const otOverrideVal=$('oi-'+id)?.value;
+  const role=roles.find(r=>r.id===(emps.find(e=>e.id===rec.employee_id)||{}).role_id)||{};
+  const stdH=Number(role.std_hours)||8;
+  const mult=Number(role.ot_multiplier)||1.5;
+  const base=Number(rec.base_salary);
+  let otPay=Number(rec.ot_pay);
+  if(otOverrideVal!==''&&otOverrideVal!=null){
+    // Recalculate OT pay with override hours
+    const hourlyRate=base>0?base/(26*stdH):0;
+    otPay=Math.round(Number(otOverrideVal)*hourlyRate*mult);
+  }
+  const total=base+otPay+Number(rec.rev_share)+bonus-Number(rec.off_deduction)-ded;
   const el=$('tp-'+id); if(el) el.textContent=fmtRp(total);
 }
 
 async function saveAllBonus(){
-  const updates=payR.map(r=>({id:r.id,bonus:Number($('bi-'+r.id)?.value)||0,extra_deductions:0,notes:''}));
+  const updates=payR.map(r=>{
+    const otVal=$('oi-'+r.id)?.value;
+    return {
+      id:r.id,
+      bonus:Number($('bi-'+r.id)?.value)||0,
+      ot_override:otVal!==''&&otVal!=null?Number(otVal):null,
+      extra_deductions:Number($('di-'+r.id)?.value)||0,
+      notes:$('ni-'+r.id)?.value||''
+    };
+  });
   try{
     await Promise.all(updates.map(u=>POST({action:'updatePayRecord',...u})));
-    toast('Semua bonus disimpan!','ok');
+    toast('Disimpan!','ok');
     payP=await GET('payPeriods');renderPay();
   }catch(e){toast(e.message,'er');}
 }
@@ -1023,11 +1139,17 @@ function renderSlipPreview(){
     rows+=`<div class="slip-divider"></div>`;
     rows+=slipRow('Bonus',fmtRp(bonus),'pos');
   }
-  if(offDed>0){
+  const shortDed=rec?Number(rec.short_hour_deduction):0;
+  if(offDed>0||shortDed>0){
     rows+=`<div class="slip-divider"></div>`;
-    rows+=slipRow(`Potongan libur extra (${Math.max(0,usedOff-allowedOff)} hari)`,'-'+fmtRp(offDed),'neg');
+    if(offDed>0) rows+=slipRow('Potongan libur extra ('+Math.max(0,usedOff-allowedOff)+' hari)','-'+fmtRp(offDed),'neg');
+    if(shortDed>0) rows+=slipRow('Potongan jam kurang','-'+fmtRp(shortDed),'neg');
   }
-  if(extraDed>0) rows+=slipRow('Potongan lain','-'+fmtRp(extraDed),'neg');
+  if(extraDed>0){
+    rows+=`<div class="slip-divider"></div>`;
+    const dedLabel=(rec&&rec.notes)?rec.notes:'Potongan lain';
+    rows+=slipRow(dedLabel,'-'+fmtRp(extraDed),'neg');
+  }
   rows+=`<div class="slip-divider"></div>`;
   rows+=slipRow('Libur terpakai',`${usedOff}/${allowedOff} hari`);
 
@@ -1067,7 +1189,7 @@ function renderSlipPreview(){
       <div style="font-size:12px;color:#666">${role.name||(rec&&rec.role_name)||'-'} · ${isPT?'Part-time':'Full-time'}</div>
     </div>
     <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
-      ${buildPrintRows(isPT,base,otH,otPay,revShare,bonus,offDed,extraDed,usedOff,allowedOff,workedDays,totalH,emp)}
+      ${buildPrintRows(isPT,base,otH,otPay,revShare,bonus,offDed,extraDed,usedOff,allowedOff,workedDays,totalH,emp,rec)}
     </table>
     <div style="background:#f3f0ff;border:1.5px solid #7c3aed;border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
       <span style="font-size:13px;font-weight:700;color:#7c3aed">TOTAL GAJI BERSIH</span>
@@ -1089,7 +1211,7 @@ function renderSlipPreview(){
   </div>`;
 }
 
-function buildPrintRows(isPT,base,otH,otPay,revShare,bonus,offDed,extraDed,usedOff,allowedOff,workedDays,totalH,emp){
+function buildPrintRows(isPT,base,otH,otPay,revShare,bonus,offDed,extraDed,usedOff,allowedOff,workedDays,totalH,emp,rec){
   const pr=(label,value,bold,color)=>`<tr>
     <td style="padding:6px 0;font-size:12px;color:#555;border-bottom:1px solid #f0f0f0">${label}</td>
     <td style="padding:6px 0;font-size:12px;text-align:right;font-weight:${bold?'700':'500'};color:${color||'#222'};border-bottom:1px solid #f0f0f0">${value}</td>
@@ -1116,7 +1238,7 @@ function buildPrintRows(isPT,base,otH,otPay,revShare,bonus,offDed,extraDed,usedO
   }
   if(bonus>0) rows+=pr('Bonus',fmtRp(bonus),false,'#16a34a');
   if(offDed>0) rows+=pr(`Potongan libur extra (${Math.max(0,usedOff-allowedOff)} hari)`,'-'+fmtRp(offDed),false,'#dc2626');
-  if(extraDed>0) rows+=pr('Potongan lain','-'+fmtRp(extraDed),false,'#dc2626');
+  if(extraDed>0){ const lbl=rec&&rec.notes?rec.notes:'Potongan lain'; rows+=pr(lbl,'-'+fmtRp(extraDed),false,'#dc2626'); }
   rows+=pr('Libur terpakai',`${usedOff}/${allowedOff} hari`);
   return rows;
 }
