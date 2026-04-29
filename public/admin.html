@@ -1138,48 +1138,18 @@ function renderSlipPreview(){
   const monthLabel=period?mlbl(...period.month_year.split('-').map(Number)):mlbl(cY,cM);
   const printDate=new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
 
-  let rows='';
-  if(isPT){
-    const hw=Number(emp&&emp.hourly_wage)||0;
-    rows+=slipRow('Total jam kerja',`${totalH} jam`);
-    rows+=slipRow('Upah / hari',fmtRp(hw*8));
-    rows+=slipRow('Total upah kerja',fmtRp(base),'pos');
-    if(otH>0){
-      rows+=`<div class="slip-divider"></div>`;
-      rows+=slipRow('Jam lembur (>8j/hari)',`+${otH} jam`,'hi');
-      rows+=slipRow('Bayar lembur (1.5×)',fmtRp(otPay),'hi');
-    }
-  } else {
-    rows+=slipRow('Hari masuk',`${workedDays} hari`);
-    rows+=slipRow('Total jam kerja',`${totalH} jam`);
-    rows+=slipRow('Gaji pokok',fmtRp(base),'pos');
-    if(otH>0){
-      rows+=`<div class="slip-divider"></div>`;
-      rows+=slipRow('Jam lembur total',`+${otH} jam`,'hi');
-      rows+=slipRow('Bayar lembur',fmtRp(otPay),'hi');
-    }
-    if(revShare>0){
-      rows+=`<div class="slip-divider"></div>`;
-      rows+=slipRow('Bagi hasil revenue',fmtRp(revShare),'pos');
-    }
-  }
-  if(bonus>0){
-    rows+=`<div class="slip-divider"></div>`;
-    rows+=slipRow('Bonus',fmtRp(bonus),'pos');
-  }
   const shortDed=rec?Number(rec.short_hour_deduction):0;
-  if(offDed>0||shortDed>0){
-    rows+=`<div class="slip-divider"></div>`;
-    if(offDed>0) rows+=slipRow('Potongan libur extra ('+Math.max(0,usedOff-allowedOff)+' hari)','-'+fmtRp(offDed),'neg');
-    if(shortDed>0) rows+=slipRow('Potongan jam kurang','-'+fmtRp(shortDed),'neg');
-  }
-  if(extraDed>0){
-    rows+=`<div class="slip-divider"></div>`;
-    const dedLabel=(rec&&rec.notes)?rec.notes:'Potongan lain';
-    rows+=slipRow(dedLabel,'-'+fmtRp(extraDed),'neg');
-  }
-  rows+=`<div class="slip-divider"></div>`;
-  rows+=slipRow('Libur terpakai',`${usedOff}/${allowedOff} hari`);
+  let rows='';
+  // Pendapatan
+  rows+=slipRow(isPT?'Upah pokok':'Gaji pokok',fmtRp(base),'pos');
+  if(otPay>0){ rows+=`<div class="slip-divider"></div>`; rows+=slipRow('Uang lembur',fmtRp(otPay),'hi'); }
+  if(revShare>0){ rows+=`<div class="slip-divider"></div>`; rows+=slipRow('Bagi hasil revenue',fmtRp(revShare),'pos'); }
+  if(bonus>0){ rows+=`<div class="slip-divider"></div>`; rows+=slipRow('Bonus',fmtRp(bonus),'pos'); }
+  // Potongan
+  if(offDed>0||shortDed>0||extraDed>0){ rows+=`<div class="slip-divider"></div>`; }
+  if(offDed>0)    rows+=slipRow('Potongan izin','-'+fmtRp(offDed),'neg');
+  if(shortDed>0)  rows+=slipRow('Potongan jam kurang','-'+fmtRp(shortDed),'neg');
+  if(extraDed>0){ const dedLabel=(rec&&rec.notes)?rec.notes:'Potongan lain'; rows+=slipRow(dedLabel,'-'+fmtRp(extraDed),'neg'); }
 
   const html=`
     <div class="slip-co">Fermat Kitchen</div>
@@ -1241,33 +1211,18 @@ function renderSlipPreview(){
 
 function buildPrintRows(isPT,base,otH,otPay,revShare,bonus,offDed,extraDed,usedOff,allowedOff,workedDays,totalH,emp,rec){
   const pr=(label,value,bold,color)=>`<tr>
-    <td style="padding:6px 0;font-size:12px;color:#555;border-bottom:1px solid #f0f0f0">${label}</td>
-    <td style="padding:6px 0;font-size:12px;text-align:right;font-weight:${bold?'700':'500'};color:${color||'#222'};border-bottom:1px solid #f0f0f0">${value}</td>
+    <td style="padding:7px 0;font-size:12px;color:#555;border-bottom:1px solid #f0f0f0">${label}</td>
+    <td style="padding:7px 0;font-size:12px;text-align:right;font-weight:${bold?'700':'500'};color:${color||'#222'};border-bottom:1px solid #f0f0f0">${value}</td>
   </tr>`;
   let rows='';
-  if(isPT){
-    const hw=Number(emp&&emp.hourly_wage)||0;
-    rows+=pr('Total jam kerja',`${totalH} jam`);
-    rows+=pr('Upah / hari',fmtRp(hw*8));
-    rows+=pr('Total upah kerja',fmtRp(base),true,'#16a34a');
-    if(otH>0){
-      rows+=pr('Jam lembur (>8j/hari)',`+${otH} jam`,false,'#d97706');
-      rows+=pr('Bayar lembur (1.5×)',fmtRp(otPay),true,'#d97706');
-    }
-  } else {
-    rows+=pr('Hari masuk',`${workedDays} hari`);
-    rows+=pr('Total jam kerja',`${totalH} jam`);
-    rows+=pr('Gaji pokok',fmtRp(base),true,'#16a34a');
-    if(otH>0){
-      rows+=pr('Jam lembur total',`+${otH} jam`,false,'#d97706');
-      rows+=pr('Bayar lembur',fmtRp(otPay),true,'#d97706');
-    }
-    if(revShare>0) rows+=pr('Bagi hasil revenue',fmtRp(revShare),false,'#16a34a');
-  }
+  rows+=pr(isPT?'Upah pokok':'Gaji pokok',fmtRp(base),true,'#16a34a');
+  if(otPay>0) rows+=pr('Uang lembur',fmtRp(otPay),false,'#d97706');
+  if(revShare>0) rows+=pr('Bagi hasil revenue',fmtRp(revShare),false,'#16a34a');
   if(bonus>0) rows+=pr('Bonus',fmtRp(bonus),false,'#16a34a');
-  if(offDed>0) rows+=pr(`Potongan libur extra (${Math.max(0,usedOff-allowedOff)} hari)`,'-'+fmtRp(offDed),false,'#dc2626');
+  const shortDed=rec?Number(rec.short_hour_deduction):0;
+  if(offDed>0) rows+=pr('Potongan izin','-'+fmtRp(offDed),false,'#dc2626');
+  if(shortDed>0) rows+=pr('Potongan jam kurang','-'+fmtRp(shortDed),false,'#dc2626');
   if(extraDed>0){ const lbl=rec&&rec.notes?rec.notes:'Potongan lain'; rows+=pr(lbl,'-'+fmtRp(extraDed),false,'#dc2626'); }
-  rows+=pr('Libur terpakai',`${usedOff}/${allowedOff} hari`);
   return rows;
 }
 
