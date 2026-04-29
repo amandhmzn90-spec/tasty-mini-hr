@@ -723,7 +723,7 @@ function renderEmps(){
       <span class="cl p">${e.name}</span>
       <span class="cl">${r?r.name:'-'}</span>
       <span class="cl"><span class="pill ${isPT?'p-am':'p-bl'}">${isPT?'PT':'FT'}</span></span>
-      <span class="cl">${isPT?fmtRp((e.hourly_wage||0)*8)+'/hari':r?fmtRp(r.base_salary)+'/bln':'-'}</span>
+      <span class="cl">${isPT?fmtRp(e.hourly_wage||0)+'/hari':r?fmtRp(r.base_salary)+'/bln':'-'}</span>
       <span class="cl">${isPT?'<span style="color:var(--t3);font-size:10px">harian</span>':(e.allowed_off||4)+' hr off'}</span>
       <span class="cl" style="display:flex;gap:3px;align-items:center">
         ${waBtn}
@@ -742,7 +742,7 @@ function editEmp(id){
   $('ef-id').value=e.id;$('ef-name').value=e.name;$('ef-role').value=e.role_id||'';
   $('ef-type').value=e.type||'full-time';
   // Display daily rate (stored as hourly, so ×8 for display)
-  $('ef-hw').value=e.type==='part-time'?Math.round((e.hourly_wage||0)*8):(e.hourly_wage||'');
+  $('ef-hw').value=e.type==='part-time'?(e.hourly_wage||0):(e.hourly_wage||'');
   $('ef-off').value=e.type==='part-time'?0:(e.allowed_off||4);
   $('ef-phone').value=e.phone||'';
   // Load off_days checkboxes
@@ -820,9 +820,10 @@ function renderReport(){
     // Earnings estimate
     let earnNote='';
     if(isPT){
-      const hw=Number(emp.hourly_wage)||0;
-      const otEst=Math.round(totalOT*hw*1.5);
-      const est=Math.round(totalH*hw);
+      const hw=Number(emp.hourly_wage)||0; // ini sekarang = upah per hari (8 jam)
+      const hwPerJam=hw/8;
+      const otEst=Math.round(totalOT*hwPerJam*1.5);
+      const est=Math.round(masuk*hw); // masuk = hari hadir × upah harian
       earnNote='<span style="color:var(--gr)">≈ '+fmtRp(est)+'</span>'+(otEst>0?'<span style="color:var(--am);margin-left:4px">+'+fmtRp(otEst)+' OT</span>':'');
     } else {
       const base=Number(role.base_salary)||0;

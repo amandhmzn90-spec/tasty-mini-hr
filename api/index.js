@@ -18,7 +18,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 app.use(express.static(join(__dirname, '../public')));
 
 
-
 // ── Supabase client ─────────────────────────────────────────────
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -166,10 +165,7 @@ app.post('/api', async (req, res) => {
         const row = { ...b.row };
         if (!row.id) row.id = uid();
         if (!row.created_at) row.created_at = nowJkt();
-        // Frontend inputs daily wage for PT; store as hourly (daily÷8) for calculations
-        if (row.type === 'part-time' && row.hourly_wage) {
-          row.hourly_wage = Math.round(Number(row.hourly_wage) / 8 * 100) / 100;
-        }
+        // hourly_wage field stores daily_wage for PT (no conversion needed)
         const { error } = await supabase.from('employees').upsert(row, { onConflict: 'id' });
         if (error) throw error;
         break;
@@ -238,7 +234,7 @@ app.post('/api', async (req, res) => {
         break;
       }
       case 'checkOut': {
-        const today_ = todayJkt();
+       const today_ = todayJkt();
         const { data: rec, error: e1 } = await supabase
           .from('attendance')
           .select('*, employees(role_id, roles(std_hours))')
@@ -357,20 +353,21 @@ async function generatePayroll(b) {
     let base = 0, otPay = 0, offDed = 0, totalOTHours = 0, shortHourDed = 0;
 
     if (emp.type === 'part-time') {
-      const hw   = Number(emp.hourly_wage) || 0;
+      // PT: harian. 1 hari = 8 jam = daily_wage (stored as hourly_wage field).
+      // Lembur = jam lebih dari 8 per hari × (daily_wage/8) × 1.5
+      const dailyWage = Number(emp.hourly_wage) || 0;
+      const hourlyRate = dailyWage / 8;
       const stdH = 8;
-      let normalHours = 0, ptOTHours = 0;
+      let ptOTHours = 0;
       empAtt.filter(a => a.status === 'hadir').forEach(a => {
         const h = Number(a.total_hours) || 0;
-        if (h <= stdH) { normalHours += h; }
-        else           { normalHours += stdH; ptOTHours += (h - stdH); }
+        if (h > stdH) ptOTHours += (h - stdH);
       });
-      normalHours  = Math.round(normalHours  * 100) / 100;
-      ptOTHours    = Math.round(ptOTHours    * 100) / 100;
-      base         = Math.round(normalHours  * hw);
-      otPay        = Math.round(ptOTHours    * hw * 1.5);
+      ptOTHours    = Math.round(ptOTHours * 100) / 100;
+      base         = workedDays * dailyWage;
+      otPay        = Math.round(ptOTHours * hourlyRate * 1.5);
       totalOTHours = ptOTHours;
-      // PT tidak ada potongan izin — mereka harian, tidak masuk = tidak dibayar
+      // PT tidak ada potongan izin — tidak masuk = tidak dibayar
     } else {
       base = Number(role.base_salary) || 0;
       const std  = Number(role.std_hours) || 8;
@@ -402,8 +399,8 @@ async function generatePayroll(b) {
       base_salary: base, worked_days: workedDays,
       total_hours: Math.round(totalHours * 100) / 100,
       daily_ot_hours: Math.round(totalOTHours * 100) / 100,
-      total_ot_hours: Math.round((emp.type === 'part-time' ? 0 : totalOTHours) * 100) / 100,
-      ot_pay: emp.type === 'part-time' ? 0 : otPay,
+      total_ot_hours: Math.round(totalOTHours * 100) / 100,
+      ot_pay: otPay,
       allowed_off: 0, used_off: totalIzin,
       extra_off: 0,
       off_deduction: offDed,
