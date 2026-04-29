@@ -248,6 +248,7 @@ app.post('/api', async (req, res) => {
        
         if (e1 || !rec) throw new Error('Tidak ada record check-in hari ini');
         const hours = calcH(rec.check_in, b.time);
+
         // Get std_hours from role
         const { data: emp } = await supabase
           .from('employees').select('role_id').eq('id', b.employee_id).single();
@@ -314,10 +315,17 @@ async function generatePayroll(b) {
   const month = b.month_year;
   const revBonus = Number(b.revenue_bonus) || 0;
 
-  // Check duplicate
+  // Check duplicate — if exists and caller says force=true, delete first
   const { data: existing } = await supabase
     .from('payroll_periods').select('id').eq('month_year', month).maybeSingle();
-  if (existing) throw new Error(`Payroll ${month} sudah ada. Hapus dulu jika ingin regenerate.`);
+  if (existing) {
+    if (b.force) {
+      await supabase.from('payroll_records').delete().eq('period_id', existing.id);
+      await supabase.from('payroll_periods').delete().eq('id', existing.id);
+    } else {
+      throw new Error(`Payroll ${month} sudah ada. Gunakan tombol Refresh Payroll.`);
+    }
+  }
 
   const [{ data: emps }, { data: roles }, { data: att }, { data: lv }] = await Promise.all([
     supabase.from('employees').select('*').neq('active', false).neq('active', 'FALSE'),
@@ -369,11 +377,11 @@ async function generatePayroll(b) {
       const mult = Number(role.ot_multiplier) || 1.5;
       const hourlyRate = base > 0 ? base / (26 * std) : 0;
 
-      // OT = total jam aktual - (hari masuk × std). Lebih akurat dari sum overtime_hours.
-      const workedHours = empAtt.filter(a => a.status === 'hadir')
-                                .reduce((s, a) => s + (Number(a.total_hours) || 0), 0);
-      const shouldHours = workedDays * std;
-      totalOTHours = Math.max(0, Math.round((workedHours - shouldHours) * 100) / 100);
+      // OT = total jam aktual - (hari checkout × std). Hari belum checkout diskip.
+      const hadirCO = empAtt.filter(a => a.status === 'hadir' && Number(a.total_hours) > 0);
+      const totalHCO = hadirCO.reduce((s, a) => s + (Number(a.total_hours) || 0), 0);
+      const shouldHours = hadirCO.length * std;
+      totalOTHours = Math.max(0, Math.round((totalHCO - shouldHours) * 100) / 100);
       otPay = Math.round(totalOTHours * hourlyRate * mult);
 
       // Short-hour deduction: hari masuk tapi jam < std
@@ -393,7 +401,7 @@ async function generatePayroll(b) {
       name: emp.name, role_name: role.name || '', type: emp.type || 'full-time',
       base_salary: base, worked_days: workedDays,
       total_hours: Math.round(totalHours * 100) / 100,
-      daily_ot_hours: Math.round(dailyOTHours * 100) / 100,
+      daily_ot_hours: Math.round(totalOTHours * 100) / 100,
       total_ot_hours: Math.round((emp.type === 'part-time' ? 0 : totalOTHours) * 100) / 100,
       ot_pay: emp.type === 'part-time' ? 0 : otPay,
       allowed_off: 0, used_off: totalIzin,

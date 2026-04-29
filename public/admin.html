@@ -66,7 +66,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .sh2{font-size:10px;color:var(--t3);margin-top:2px}
 
 /* table */
-.tw{background:var(--c2);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;margin-bottom:1.1rem}
+.tw{background:var(--c2);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;margin-bottom:1.1rem}.tw-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r2)}.tw-scroll .tw{border:none;border-radius:0;margin-bottom:0}
 .th{display:grid;padding:8px 13px;border-bottom:1px solid var(--bd);background:var(--c3)}
 .th span{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
 .tr{display:grid;padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.025);align-items:center;transition:background .12s}
@@ -511,7 +511,7 @@ function renderAtt(){
   const totalPT=emps.filter(e=>e.active!==false&&String(e.active)!=='FALSE'&&e.type==='part-time').length;
   const totalEmps=totalFT+totalPT;
 
-  let html=`<div class="tw"><div class="th" style="grid-template-columns:1.4fr 68px 68px 58px 62px 85px 72px">
+  let html=`<div class="tw-scroll"><div class="tw" style="min-width:580px"><div class="th" style="grid-template-columns:1.4fr 68px 68px 58px 62px 85px 72px">
     <span>Karyawan</span><span>Masuk</span><span>Keluar</span><span>Jam</span><span>OT</span><span>Status</span><span>Aksi</span>
   </div>`;
 
@@ -601,7 +601,26 @@ function renderAtt(){
     renderAttRows(ptRows, 'Part-time');
   });
 
-  html+='</div>';
+  html+='</div></div></div>';
+
+  // ── Totals footer ──
+  const allHadir=filtered.filter(a=>a.status==='hadir');
+  const grandTotalH=Math.round(allHadir.reduce((s,a)=>s+(Number(a.total_hours)||0),0)*100)/100;
+  // Gross OT = sum per hari max(0, jam - std), tanpa dikurangi hari yang kurang
+  let grandOT=0;
+  allHadir.filter(a=>Number(a.total_hours)>0).forEach(a=>{
+    const emp=emps.find(e=>e.id===a.employee_id)||{};
+    const role=roles.find(r=>r.id===emp.role_id)||{};
+    const stdH=Number(role.std_hours)||8;
+    grandOT+=Math.max(0,Number(a.total_hours)-stdH);
+  });
+  grandOT=Math.round(grandOT*100)/100;
+
+  html+=`<div style="display:flex;justify-content:flex-end;gap:16px;padding:10px 14px;background:var(--c3);border-top:1px solid var(--bd2);font-size:12px">
+    <span style="color:var(--t2)">Total jam: <strong style="color:var(--tx)">${grandTotalH} jam</strong></span>
+    <span style="color:var(--t2)">Total lembur: <strong style="color:var(--am)">${grandOT>0?'+'+grandOT+' jam':'-'}</strong></span>
+  </div>`;
+
   el.innerHTML=html;
 }
 
@@ -713,10 +732,10 @@ function renderEmps(){
       </span>
     </div>`;
   }).join('');
-  el.innerHTML=`<div class="tw">
+  el.innerHTML=`<div class="tw-scroll"><div class="tw" style="min-width:520px">
     <div class="th" style="grid-template-columns:1.5fr 1fr 65px 110px 70px 90px">
       <span>Nama</span><span>Jabatan</span><span>Tipe</span><span>Gaji</span><span>Off</span><span>Aksi</span>
-    </div>${rows}</div>`;
+    </div>${rows}</div></div>`;
 }
 function editEmp(id){
   const e=emps.find(x=>x.id===id);if(!e)return;
@@ -791,9 +810,11 @@ function renderReport(){
     const totalLibur=empAtt.filter(a=>a.status==='libur').length;
     const totalIzin=empAtt.filter(a=>a.status==='izin').length+empLv.length;
 
-    // OT = total jam - (hari masuk × std jam). Murni dari jam kerja aktual.
-    const shouldH=masuk*stdH;
-    const totalOT=Math.max(0,Math.round((totalH-shouldH)*100)/100);
+    // OT = total jam aktual - (hari yg sudah checkout × std). Hari belum checkout diskip.
+    const hadirCheckout=empAtt.filter(a=>a.status==='hadir'&&Number(a.total_hours)>0);
+    const totalHCheckout=Math.round(hadirCheckout.reduce((s,a)=>s+(Number(a.total_hours)||0),0)*100)/100;
+    const shouldH=hadirCheckout.length*stdH;
+    const totalOT=Math.max(0,Math.round((totalHCheckout-shouldH)*100)/100);
 
     // Izin dipotong per hari dari gaji. Tidak ada jatah bulanan.
     // Earnings estimate
@@ -831,7 +852,7 @@ function renderReport(){
         <div style="background:var(--c3);border-radius:var(--r1);padding:8px 10px">
           <div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Total jam</div>
           <div style="font-size:16px;font-weight:800">${totalH} <span style="font-size:11px;font-weight:500;color:var(--t2)">jam</span></div>
-          <div style="font-size:10px;color:var(--t3)">std: ${shouldH}j</div>
+          <div style="font-size:10px;color:var(--t3)">std: ${masuk*stdH}j${hadirCheckout.length<masuk?" ("+hadirCheckout.length+" checkout)":""}</div>
         </div>
         <div style="background:var(--c3);border-radius:var(--r1);padding:8px 10px">
           <div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Lembur</div>
@@ -924,13 +945,15 @@ function renderPay(){
     const ftRec=records.filter(r=>r.type==='full-time');
     const ptRec=records.filter(r=>r.type==='part-time');
 
-    const COLS='1.4fr 55px 90px 55px 65px 70px 80px 1fr 80px';
+    // Responsive: tampilkan sebagai cards di layar kecil, tabel di layar lebar
+    const COLS='minmax(110px,1.2fr) 48px minmax(90px,1fr) 52px minmax(60px,.7fr) minmax(80px,.9fr) minmax(80px,.9fr) minmax(80px,.9fr) minmax(80px,.9fr) minmax(80px,.9fr) minmax(110px,1.2fr) minmax(85px,.9fr)';
+    const LBL='font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px';
     const renderPayRows=list=>list.map(r=>{
       const isOT=Number(r.total_ot_hours)>0;
       const isDed=Number(r.off_deduction)>0;
       const isShort=Number(r.short_hour_deduction)>0;
       const hasOvr=r.ot_override!=null&&r.ot_override!=='';
-      return `<div class="tr" style="grid-template-columns:${COLS}">
+      return `<div class="tr" style="grid-template-columns:${COLS};align-items:start;padding-top:10px;padding-bottom:10px">
         <span class="cl p">${r.name}</span>
         <span class="cl"><span class="pill ${r.type==='full-time'?'p-bl':'p-am'}">${r.type==='full-time'?'FT':'PT'}</span></span>
         <span class="cl">${fmtRp(r.base_salary)}</span>
@@ -938,34 +961,39 @@ function renderPay(){
         <span class="cl ${isOT?'wn':''}">${isOT?'+'+r.total_ot_hours+'j':'-'}${hasOvr?'<span style="font-size:9px;color:var(--vi)"> ✎</span>':''}</span>
         <span class="cl">${isOT?fmtRp(r.ot_pay):'-'}</span>
         <span class="cl ${isDed||isShort?'rd':''}">
-          ${isDed?'<div>off: -'+fmtRp(r.off_deduction)+'</div>':''}
+          ${isDed?'<div>izin: -'+fmtRp(r.off_deduction)+'</div>':''}
           ${isShort?'<div>tlbt: -'+fmtRp(r.short_hour_deduction)+'</div>':''}
           ${!isDed&&!isShort?'-':''}
         </span>
         <span class="cl">
-          <div class="bonus-row" style="display:flex;flex-direction:column;gap:3px">
-            <input class="bonus-inp" type="number" id="bi-${r.id}" value="${r.bonus||0}" min="0" placeholder="Bonus 0"
-              onchange="liveBonus('${r.id}')" style="margin-bottom:2px">
-            <input class="bonus-inp" type="number" id="oi-${r.id}" value="${r.ot_override!=null?r.ot_override:''}" min="0" placeholder="OT override jam"
-              onchange="liveBonus('${r.id}')" style="border-color:var(--am1);color:var(--am)">
-            <input class="bonus-inp" type="number" id="di-${r.id}" value="${r.extra_deductions||0}" min="0" placeholder="Potongan 0"
-              onchange="liveBonus('${r.id}')" style="border-color:var(--rd1);color:var(--rd)">
-            <input class="bonus-inp" id="ni-${r.id}" value="${r.notes||''}" placeholder="Keterangan…"
-              style="font-size:10px;color:var(--t2)" onchange="">
-          </div>
-          <div style="font-size:10px;color:var(--t2);margin-top:3px">rev: ${fmtRp(r.rev_share)}</div>
+          <div style="${LBL};color:var(--t3)">Bonus</div>
+          <input class="bonus-inp" type="number" id="bi-${r.id}" value="${r.bonus||0}" min="0" placeholder="0" onchange="liveBonus('${r.id}')">
+          <div style="font-size:10px;color:var(--t3);margin-top:4px">rev: ${fmtRp(r.rev_share)}</div>
         </span>
-        <span class="cl" style="color:var(--gr);font-weight:700" id="tp-${r.id}">${fmtRp(r.total_pay)}</span>
+        <span class="cl">
+          <div style="${LBL};color:var(--am)">OT Override</div>
+          <input class="bonus-inp" type="number" id="oi-${r.id}" value="${r.ot_override!=null?r.ot_override:''}" min="0" placeholder="jam (kosong=auto)" onchange="liveBonus('${r.id}')" style="border-color:var(--am1);color:var(--am)">
+        </span>
+        <span class="cl">
+          <div style="${LBL};color:var(--rd)">Potongan</div>
+          <input class="bonus-inp" type="number" id="di-${r.id}" value="${r.extra_deductions||0}" min="0" placeholder="0" onchange="liveBonus('${r.id}')" style="border-color:var(--rd1);color:var(--rd)">
+        </span>
+        <span class="cl">
+          <div style="${LBL};color:var(--t3)">Keterangan</div>
+          <input class="bonus-inp" id="ni-${r.id}" value="${r.notes||''}" placeholder="kasbon, cicilan…" style="font-size:11px;color:var(--t2)">
+        </span>
+        <span class="cl" style="color:var(--gr);font-weight:700;font-size:13px" id="tp-${r.id}">${fmtRp(r.total_pay)}</span>
       </div>`;
     }).join('');
 
     const TH=`<div class="th" style="grid-template-columns:${COLS}">
-      <span>Nama</span><span>Tipe</span><span>Gaji pokok</span><span>Jam</span><span>OT jam</span><span>OT pay</span><span>Potongan</span><span>Bonus/OT✎/Potong/Ket.</span><span>Total</span>
+      <span>Nama</span><span>Tipe</span><span>Gaji pokok</span><span>Jam</span><span>OT jam</span><span>OT pay</span><span>Potongan</span><span>Bonus</span><span>OT Override</span><span>Potongan lain</span><span>Keterangan</span><span>Total</span>
     </div>`;
 
+    const wrapTbl=rows=>`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r2);border:1px solid var(--bd)"><div style="min-width:900px">${rows}</div></div>`;
     let tableHtml='';
-    if(ftRec.length) tableHtml+=`<div class="sec">Full-time (${ftRec.length} karyawan)</div><div class="tw">${TH}${renderPayRows(ftRec)}</div>`;
-    if(ptRec.length) tableHtml+=`<div class="sec" style="margin-top:.75rem">Part-time (${ptRec.length} karyawan)</div><div class="tw">${TH}${renderPayRows(ptRec)}</div>`;
+    if(ftRec.length) tableHtml+=`<div class="sec">Full-time (${ftRec.length} karyawan)</div>${wrapTbl(TH+renderPayRows(ftRec))}`;
+    if(ptRec.length) tableHtml+=`<div class="sec" style="margin-top:.75rem">Part-time (${ptRec.length} karyawan)</div>${wrapTbl(TH+renderPayRows(ptRec))}`;
 
     wrap.innerHTML=mnav+stat+legend+tableHtml+`
     <div class="br" style="margin-top:1rem;display:flex;gap:8px;flex-wrap:wrap">
@@ -988,11 +1016,11 @@ function liveBonus(id){
   const base=Number(rec.base_salary);
   let otPay=Number(rec.ot_pay);
   if(otOverrideVal!==''&&otOverrideVal!=null){
-    // Recalculate OT pay with override hours
     const hourlyRate=base>0?base/(26*stdH):0;
     otPay=Math.round(Number(otOverrideVal)*hourlyRate*mult);
   }
-  const total=base+otPay+Number(rec.rev_share)+bonus-Number(rec.off_deduction)-ded;
+  const shortDed=Number(rec.short_hour_deduction)||0;
+  const total=base+otPay+Number(rec.rev_share)+bonus-Number(rec.off_deduction)-shortDed-ded;
   const el=$('tp-'+id); if(el) el.textContent=fmtRp(total);
 }
 
@@ -1026,12 +1054,12 @@ async function genPay(){
 async function refreshPay(){
   const period=payP.find(p=>p.month_year===mkey(cY,cM));
   if(!period)return;
-  const rev=Number(prompt('Revenue bonus (Rp) untuk bulan ini?', period.revenue_bonus||0));
-  if(isNaN(rev))return;
-  if(!confirm(`Refresh payroll ${mlbl(cY,cM)}?\nData payroll lama akan dihapus dan digenerate ulang dari data absensi terkini.`))return;
+  const revStr=prompt('Revenue bonus (Rp) untuk bulan ini:', period.revenue_bonus||0);
+  if(revStr===null)return; // cancelled
+  const rev=Number(revStr)||0;
+  if(!confirm('Refresh payroll '+mlbl(cY,cM)+'?\nData lama dihapus dan digenerate ulang.'))return;
   try{
-    await POST({action:'deletePayPeriod',id:period.id});
-    await POST({action:'generatePayroll',month_year:mkey(cY,cM),revenue_bonus:rev,by:sess?.username||'owner'});
+    await POST({action:'generatePayroll',month_year:mkey(cY,cM),revenue_bonus:rev,by:sess?.username||'owner',force:true});
     toast('Payroll di-refresh!','ok');
     payP=await GET('payPeriods');renderPay();
   }catch(e){toast(e.message,'er');}
