@@ -742,7 +742,7 @@ function editEmp(id){
   $('ef-id').value=e.id;$('ef-name').value=e.name;$('ef-role').value=e.role_id||'';
   $('ef-type').value=e.type||'full-time';
   // Display daily rate (stored as hourly, so ×8 for display)
-  $('ef-hw').value=e.type==='part-time'?(e.hourly_wage||0):(e.hourly_wage||'');
+  $('ef-hw').value=e.hourly_wage||'';
   $('ef-off').value=e.type==='part-time'?0:(e.allowed_off||4);
   $('ef-phone').value=e.phone||'';
   // Load off_days checkboxes
@@ -820,10 +820,10 @@ function renderReport(){
     // Earnings estimate
     let earnNote='';
     if(isPT){
-      const hw=Number(emp.hourly_wage)||0; // ini sekarang = upah per hari (8 jam)
-      const hwPerJam=hw/8;
-      const otEst=Math.round(totalOT*hwPerJam*1.5);
-      const est=Math.round(masuk*hw); // masuk = hari hadir × upah harian
+      const dailyW=Number(emp.hourly_wage)||0;
+      const hrlyW=dailyW/8;
+      const otEst=Math.round(totalOT*hrlyW*1.5);
+      const est=masuk*dailyW;
       earnNote='<span style="color:var(--gr)">≈ '+fmtRp(est)+'</span>'+(otEst>0?'<span style="color:var(--am);margin-left:4px">+'+fmtRp(otEst)+' OT</span>':'');
     } else {
       const base=Number(role.base_salary)||0;
@@ -1153,7 +1153,7 @@ function renderSlipPreview(){
   if(extraDed>0){ const dedLabel=(rec&&rec.notes)?rec.notes:'Potongan lain'; rows+=slipRow(dedLabel,'-'+fmtRp(extraDed),'neg'); }
 
   const html=`
-    <div class="slip-co">Fermat Kitchen</div>
+    <div class="slip-co">Tastyummy Bakery</div>
     <div class="slip-title">Slip Gaji</div>
     <div class="slip-period">Periode: ${monthLabel} · Dicetak: ${printDate}</div>
     <div class="slip-emp-name">${emp?emp.name:(rec&&rec.name)||'?'}</div>
@@ -1163,7 +1163,7 @@ function renderSlipPreview(){
       <span class="slip-total-lbl">TOTAL GAJI BERSIH</span>
       <span class="slip-total-val">${fmtRp(total)}</span>
     </div>
-    <div class="slip-footer">Dokumen ini digenerate otomatis oleh sistem HR Fermat Kitchen</div>`;
+    <div class="slip-footer">Dokumen ini digenerate otomatis oleh sistem HR Tastyummy Bakery</div>`;
 
   preview.innerHTML=html;
   preview.classList.add('vis');
@@ -1175,7 +1175,7 @@ function renderSlipPreview(){
   $('slip-print-area').innerHTML=`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #7c3aed">
       <div>
-        <div style="font-size:10px;font-weight:700;color:#7c3aed;letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px">Fermat Kitchen</div>
+        <div style="font-size:10px;font-weight:700;color:#7c3aed;letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px">Tastyummy Bakery</div>
         <div style="font-size:22px;font-weight:900;margin-bottom:2px">Slip Gaji</div>
         <div style="font-size:11px;color:#888">Periode: ${monthLabel}</div>
       </div>
@@ -1205,7 +1205,7 @@ function renderSlipPreview(){
       </div>
     </div>
     <div style="font-size:10px;color:#aaa;text-align:center;margin-top:32px;padding-top:12px;border-top:1px solid #eee">
-      Dokumen ini digenerate otomatis oleh sistem HR Fermat Kitchen · ${printDate}
+      Dokumen ini digenerate otomatis oleh sistem HR Tastyummy Bakery · ${printDate}
     </div>
   </div>`;
 }
@@ -1281,7 +1281,7 @@ Berikut slip gaji kamu untuk *${monthLabel}*:
 
 `;
   msg+=`Terima kasih atas kerja kerasnya! 🙏
-— Fermat Kitchen`;
+— Tastyummy Bakery`;
 
   const waNum=emp.phone.replace(/^0/,'62').replace(/[^0-9]/g,'');
   window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`,'_blank');
