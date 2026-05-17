@@ -426,7 +426,6 @@ function applyRole(){
   ['nb-att','nb-roles','nb-emps'].forEach(id=>{$( id).style.display=isAdmin?'block':'none';});
   $('sb-owner-sec').style.display=isOwner?'block':'none';
   ['nb-report','nb-pay','nb-org'].forEach(id=>{$(id).style.display=isOwner?'block':'none';});
-  ['sb-bb-sec','nb-bb1','nb-bb2','nb-bb3'].forEach(id=>{const el=$(id);if(el)el.style.display=isOwner?'block':'none';});
   // set first active page
   if(isAdmin) nav('att');
   else        nav('report');
