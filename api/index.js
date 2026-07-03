@@ -444,7 +444,7 @@ async function updatePayRecord(b) {
   }
 
   const total = Number(rec.base_salary) + otPay + Number(rec.rev_share)
-              + bonus - Number(rec.off_deduction) - extraD;
+              + bonus - Number(rec.off_deduction) - Number(rec.short_hour_deduction || 0) - extraD;
 
   const { error: ue } = await supabase.from('payroll_records').update({
     bonus, extra_deductions: extraD, total_pay: total,
