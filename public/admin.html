@@ -904,13 +904,7 @@ function renderPay(){
   const period=payP.find(p=>p.month_year===m);
   const wrap=$('pay-body');
 
-  const delBtn=period?`<button class="bs" onclick="delPayPeriod('${period.id}')" style="margin-left:auto;border-color:var(--rd);color:var(--rd)">🗑 Hapus Payroll</button>`:'';
-  const mnav=`<div class="br" style="display:flex;gap:8px;align-items:center;margin-bottom:1rem">
-      <button class="bs" onclick="chM(-1)">← Bulan lalu</button>
-      <span style="font-weight:700">${mlbl(cY,cM)}</span>
-      <button class="bs" onclick="chM(1)">Bulan depan →</button>
-      ${delBtn}
-    </div>`;
+  const mnav=`<div class="mn"><button class="mn-b" onclick="chM(-1)">‹</button><div class="mn-l" id="ml-pay">${mlbl(cY,cM)}</div><button class="mn-b" onclick="chM(1)">›</button></div>`;
 
   if(!period){
     wrap.innerHTML=mnav+`<div class="fc" style="text-align:center;padding:2rem">
@@ -1068,17 +1062,6 @@ async function refreshPay(){
     await POST({action:'generatePayroll',month_year:mkey(cY,cM),revenue_bonus:rev,by:sess?.username||'owner',force:true});
     toast('Payroll di-refresh!','ok');
     payP=await GET('payPeriods');renderPay();
-  }catch(e){toast(e.message,'er');}
-}
-
-async function delPayPeriod(id){
-  if(!confirm('Hapus payroll '+mlbl(cY,cM)+'? Data tidak bisa dikembalikan.')) return;
-  try{
-    await POST({action:'deletePayPeriod',id});
-    toast('Payroll dihapus','ok');
-    payP=await GET('payPeriods');
-    payR=[];
-    renderPay();
   }catch(e){toast(e.message,'er');}
 }
 
